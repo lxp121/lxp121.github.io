@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  图片测试 - lxp121 personal blog
+  Setting FTP server with vsftpd - lxp121 personal blog
   
   </title>
   
@@ -97,10 +97,10 @@
       <div class="markdown-body article-wrap">
        <div class="article">
           
-          <h1>图片测试</h1>
+          <h1>Setting FTP server with vsftpd</h1>
      
         <div class="read-more clearfix">
-          <span class="date">2018/1/16</span>
+          <span class="date">2017/12/22</span>
 
           
            
@@ -115,7 +115,58 @@
       </div><!-- article -->
 
       <div class="article-content">
-      <p><img src="media/15161166947762/15161167301885.jpg" alt=""/></p>
+      <ul>
+<li>Install vsftpd</li>
+</ul>
+
+<pre><code class="language-bash">sudo apt-get install vsftpd
+</code></pre>
+
+<ul>
+<li>Configure vsftpd</li>
+</ul>
+
+<pre><code class="language-bash">sudo vim /etc/vsftpd.conf
+</code></pre>
+
+<p>Modify following lines to restrict user.</p>
+
+<pre><code class="language-bash">anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+chroot_local_user=YES
+loca_root=/home/ftp
+</code></pre>
+
+<ul>
+<li>Add ftp user (or you can use local id)</li>
+</ul>
+
+<pre><code class="language-bash">sudo useradd -d /home/ftp -M ftpuser
+sudo passwd ftpuser
+</code></pre>
+
+<ul>
+<li>Change permission</li>
+</ul>
+
+<pre><code class="language-bash">sudo chmod a-w /home/ftp
+</code></pre>
+
+<ul>
+<li>Configure pam.d/vsftpd to allow local user id</li>
+</ul>
+
+<pre><code class="language-bash">sudo vim /etc/pam.d/vsftp
+# auth   required pam_shells.so
+</code></pre>
+
+<ul>
+<li>Restart the vsftpd</li>
+</ul>
+
+<pre><code class="language-bash">sudo /etc/init.d/vsftpd restart
+</code></pre>
 
 
     
@@ -126,13 +177,13 @@
         <div class="large-6 columns">
         <p class="text-left" style="padding:15px 0px;">
       
+          <a href="15161166947762.html" 
+          title="Previous Post: 图片测试">&laquo; 图片测试</a>
+      
         </p>
         </div>
         <div class="large-6 columns">
       <p class="text-right" style="padding:15px 0px;">
-      
-          <a  href="15139073479032.html" 
-          title="Next Post: Setting FTP server with vsftpd">Setting FTP server with vsftpd &raquo;</a>
       
       </p>
         </div>

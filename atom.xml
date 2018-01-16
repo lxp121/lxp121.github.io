@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[lxp121 personal blog]]></title>
+  <link href="lxp121.github.io/atom.xml" rel="self"/>
+  <link href="lxp121.github.io/"/>
+  <updated>2018-01-17T00:41:17+08:00</updated>
+  <id>lxp121.github.io/</id>
+  <author>
+    <name><![CDATA[]]></name>
+    
+  </author>
+  <generator uri="http://www.mweb.im/">MWeb</generator>
+  
+  <entry>
+    <title type="html"><![CDATA[图片测试]]></title>
+    <link href="lxp121.github.io/15161166947762.html"/>
+    <updated>2018-01-16T23:31:34+08:00</updated>
+    <id>lxp121.github.io/15161166947762.html</id>
+    <content type="html"><![CDATA[
+<p><img src="media/15161166947762/15161167301885.jpg" alt=""/></p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Setting FTP server with vsftpd]]></title>
+    <link href="lxp121.github.io/15139073479032.html"/>
+    <updated>2017-12-22T09:49:07+08:00</updated>
+    <id>lxp121.github.io/15139073479032.html</id>
+    <content type="html"><![CDATA[
+<ul>
+<li>Install vsftpd</li>
+</ul>
+
+<pre><code class="language-bash">sudo apt-get install vsftpd
+</code></pre>
+
+<ul>
+<li>Configure vsftpd</li>
+</ul>
+
+<pre><code class="language-bash">sudo vim /etc/vsftpd.conf
+</code></pre>
+
+<p>Modify following lines to restrict user.</p>
+
+<pre><code class="language-bash">anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+chroot_local_user=YES
+loca_root=/home/ftp
+</code></pre>
+
+<ul>
+<li>Add ftp user (or you can use local id)</li>
+</ul>
+
+<pre><code class="language-bash">sudo useradd -d /home/ftp -M ftpuser
+sudo passwd ftpuser
+</code></pre>
+
+<ul>
+<li>Change permission</li>
+</ul>
+
+<pre><code class="language-bash">sudo chmod a-w /home/ftp
+</code></pre>
+
+<ul>
+<li>Configure pam.d/vsftpd to allow local user id</li>
+</ul>
+
+<pre><code class="language-bash">sudo vim /etc/pam.d/vsftp
+# auth   required pam_shells.so
+</code></pre>
+
+<ul>
+<li>Restart the vsftpd</li>
+</ul>
+
+<pre><code class="language-bash">sudo /etc/init.d/vsftpd restart
+</code></pre>
+
+]]></content>
+  </entry>
+  
+</feed>
