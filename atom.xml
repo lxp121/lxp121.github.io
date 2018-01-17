@@ -4,7 +4,7 @@
   <title><![CDATA[lxp121 personal blog]]></title>
   <link href="lxp121.github.io/atom.xml" rel="self"/>
   <link href="lxp121.github.io/"/>
-  <updated>2018-01-17T14:42:38+08:00</updated>
+  <updated>2018-01-17T14:43:59+08:00</updated>
   <id>lxp121.github.io/</id>
   <author>
     <name><![CDATA[]]></name>
@@ -46,6 +46,44 @@
 <li>CNN中的网络设计应该是逐渐减小图像尺寸，同时增加通道数，让空间信息转化为高阶抽象的特征信息。</li>
 <li>CNN中可以利用Inception方法来提取不同抽象程度的高阶特征，用ResNet的思想来加深网络的层数。</li>
 <li>CNN处理图像时，常常会对原图进行旋转、裁剪、亮度、色度、饱和度等变化以增大数据集增加鲁棒性。</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[TensorRT Plugin APIs]]></title>
+    <link href="lxp121.github.io/15148637545035.html"/>
+    <updated>2018-01-02T11:29:14+08:00</updated>
+    <id>lxp121.github.io/15148637545035.html</id>
+    <content type="html"><![CDATA[
+<h2 id="toc_0">When creating the network (from parser or API)</h2>
+
+<ul>
+<li>getNbOutputs()</li>
+<li>getOutputDimensions()</li>
+</ul>
+
+<h2 id="toc_1">By the builder</h2>
+
+<ul>
+<li>configure()</li>
+<li>getWorkSpaceSize()</li>
+</ul>
+
+<h2 id="toc_2">At runtime</h2>
+
+<ul>
+<li>initialize() when the engine context is constructed</li>
+<li>enqueue() at inference time</li>
+<li>terminate() when the engine context is destroyed</li>
+</ul>
+
+<h2 id="toc_3">For serialization</h2>
+
+<ul>
+<li>getSerializationSize()</li>
+<li>serialize()</li>
 </ul>
 
 ]]></content>

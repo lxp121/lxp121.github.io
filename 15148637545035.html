@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  About - lxp121 personal blog
+  TensorRT Plugin APIs - lxp121 personal blog
   
   </title>
   
@@ -94,23 +94,173 @@
        
 
  <script type="text/javascript">
-	$(function(){
-		var currentURL = 'About.html';
-		currentURL = currentURL.substr(0,currentURL.length-5);
-		$('#menu_item_'+currentURL).addClass('is_active');
-	});
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
 </script>
 <div class="row">
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>TensorRT Plugin APIs</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2018/1/2</span>
 
-    <div id="single-page-wrap">
-        <h1>About</h1>
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='trt.html'>TensorRT</a></span>
+           
+         
+          <span class="comments">
+            
 
-        <div class="markdown-body post-page">
-        <p>Deep Learning and CUDA knowledge sharing</p>
+            
+          </span>
 
         </div>
-    </div>
-</div>              
+      </div><!-- article -->
+
+      <div class="article-content">
+      <h2 id="toc_0">When creating the network (from parser or API)</h2>
+
+<ul>
+<li>getNbOutputs()</li>
+<li>getOutputDimensions()</li>
+</ul>
+
+<h2 id="toc_1">By the builder</h2>
+
+<ul>
+<li>configure()</li>
+<li>getWorkSpaceSize()</li>
+</ul>
+
+<h2 id="toc_2">At runtime</h2>
+
+<ul>
+<li>initialize() when the engine context is constructed</li>
+<li>enqueue() at inference time</li>
+<li>terminate() when the engine context is destroyed</li>
+</ul>
+
+<h2 id="toc_3">For serialization</h2>
+
+<ul>
+<li>getSerializationSize()</li>
+<li>serialize()</li>
+</ul>
+
+
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="15160785121571.html" 
+          title="Previous Post: 深度学习中的优化调参细节">&laquo; 深度学习中的优化调参细节</a>
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="media/15161603048345/15161633263065.jpg" /></div>
+            
+                <h1>lxp121 personal blog</h1>
+                <div class="site-des"></div>
+                <div class="social">
+
+
+
+<a target="_blank" class="linkedin" href="https://www.linkedin.com/in/xipengli" title="LinkedIn">LinkedIn</a>
+
+
+
+
+
+<a target="_blank" class="github" target="_blank" href="www.github.com/lxp121" title="GitHub">GitHub</a>
+<a target="_blank" class="email" href="mailto:lxp121@gmail.com" title="Email">Email</a>
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="dl.html"><strong>Deep Learning</strong></a>
+        
+            <a href="trt.html"><strong>TensorRT</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="15160785121571.html">深度学习中的优化调参细节</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15148637545035.html">TensorRT Plugin APIs</a>
+			      </li>
+		     
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
  <div class="page-bottom clearfix">
   <div class="row">
    <p class="copyright">Copyright &copy; 2015
