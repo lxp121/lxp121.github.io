@@ -161,88 +161,6 @@
                 </div>
               </div><!-- article -->
         
-			<div class="article">
-                <a class="clearlink" href="15139073479032.html">
-                
-                  <h1>Setting FTP server with vsftpd</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<ul>
-<li>Install vsftpd</li>
-</ul>
-
-<pre><code class="language-bash">sudo apt-get install vsftpd
-</code></pre>
-
-<ul>
-<li>Configure vsftpd</li>
-</ul>
-
-<pre><code class="language-bash">sudo vim /etc/vsftpd.conf
-</code></pre>
-
-<p>Modify following lines to restrict user.</p>
-
-<pre><code class="language-bash">anonymous_enable=NO
-local_enable=YES
-write_enable=YES
-chroot_local_user=YES
-loca_root=/home/ftp
-</code></pre>
-
-<ul>
-<li>Add ftp user (or you can use local id)</li>
-</ul>
-
-<pre><code class="language-bash">sudo useradd -d /home/ftp -M ftpuser
-sudo passwd ftpuser
-</code></pre>
-
-<ul>
-<li>Change permission</li>
-</ul>
-
-<pre><code class="language-bash">sudo chmod a-w /home/ftp
-</code></pre>
-
-<ul>
-<li>Configure pam.d/vsftpd to allow local user id</li>
-</ul>
-
-<pre><code class="language-bash">sudo vim /etc/pam.d/vsftp
-# auth   required pam_shells.so
-</code></pre>
-
-<ul>
-<li>Restart the vsftpd</li>
-</ul>
-
-<pre><code class="language-bash">sudo /etc/init.d/vsftpd restart
-</code></pre>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/12/22</span>
-                    
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
               
 
 
@@ -315,12 +233,6 @@ sudo passwd ftpuser
 		      
 			      <li class="post">
 			        <a href="15160785121571.html">深度学习中的优化调参细节</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15139073479032.html">Setting FTP server with vsftpd</a>
 			      </li>
 		     
 		   
