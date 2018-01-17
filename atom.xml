@@ -4,24 +4,13 @@
   <title><![CDATA[lxp121 personal blog]]></title>
   <link href="lxp121.github.io/atom.xml" rel="self"/>
   <link href="lxp121.github.io/"/>
-  <updated>2018-01-17T00:41:35+08:00</updated>
+  <updated>2018-01-17T11:35:58+08:00</updated>
   <id>lxp121.github.io/</id>
   <author>
     <name><![CDATA[]]></name>
     
   </author>
   <generator uri="http://www.mweb.im/">MWeb</generator>
-  
-  <entry>
-    <title type="html"><![CDATA[图片测试]]></title>
-    <link href="lxp121.github.io/15161166947762.html"/>
-    <updated>2018-01-16T23:31:34+08:00</updated>
-    <id>lxp121.github.io/15161166947762.html</id>
-    <content type="html"><![CDATA[
-<p><img src="media/15161166947762/15161167301885.jpg" alt=""/></p>
-
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[Setting FTP server with vsftpd]]></title>
