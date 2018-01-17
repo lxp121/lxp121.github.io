@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  深度学习中的优化调参细节 - lxp121 personal blog
+  Deep Learning - lxp121 personal blog
   
   </title>
   
@@ -92,36 +92,23 @@
        
 
  <script type="text/javascript">
-  $(function(){
-    $('#menu_item_index').addClass('is_active');
-  });
+	$(function(){
+		$('#menu_item_index').addClass('is_active');
+	});
 </script>
 <div class="row">
-  <div class="large-8 medium-8 columns">
-      <div class="markdown-body article-wrap">
-       <div class="article">
-          
-          <h1>深度学习中的优化调参细节</h1>
-     
-        <div class="read-more clearfix">
-          <span class="date">2018/1/16</span>
-
-          <span>posted in&nbsp;</span> 
-          
-              <span class="posted-in"><a href='dl.html'>Deep Learning</a></span>
-           
-         
-          <span class="comments">
-            
-
-            
-          </span>
-
-        </div>
-      </div><!-- article -->
-
-      <div class="article-content">
-      <h2 id="toc_0">深度学习中的技巧</h2>
+	<div class="large-8 medium-8 columns">
+		<div class="markdown-body home-categories">
+		
+			<div class="article">
+                <a class="clearlink" href="15160785121571.html">
+                
+                  <h1>深度学习中的优化调参细节</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h2 id="toc_0">深度学习中的技巧</h2>
 
 <ul>
 <li>初始化参数尽量小一些，这样 softmax 的回归输出更加接近均匀分布，使得刚开始网络并不确信数据属于哪一类；另一方面从数值优化上看我们希望我们的参数具有一致的方差（一致的数量级），这样我们的梯度下降法下降也会更快。同时为了使每一层的激励值保持一定的方差，我们在初始化参数（不包括偏置项）的方差可以与输入神经元的平方根成反比。</li>
@@ -151,40 +138,46 @@
 <li>CNN处理图像时，常常会对原图进行旋转、裁剪、亮度、色度、饱和度等变化以增大数据集增加鲁棒性。</li>
 </ul>
 
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2018/1/16</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='dl.html'>Deep Learning</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
 
-    
-
-      </div>
-
-      <div class="row">
-        <div class="large-6 columns">
-        <p class="text-left" style="padding:15px 0px;">
-      
-        </p>
-        </div>
-        <div class="large-6 columns">
-      <p class="text-right" style="padding:15px 0px;">
-      
-          <a  href="15139073479032.html" 
-          title="Next Post: Setting FTP server with vsftpd">Setting FTP server with vsftpd &raquo;</a>
-      
-      </p>
-        </div>
-      </div>
-      <div class="comments-wrap">
-        <div class="share-comments">
-          
-
-          
-
-          
-        </div>
-      </div>
-    </div><!-- article-wrap -->
-  </div><!-- large 8 -->
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+              
 
 
-
+			<div class="row">
+			  <div class="large-6 columns">
+			  <p class="text-left" style="padding-top:25px;">
+			   
+			  </p>
+			  </div>
+			  <div class="large-6 columns">
+			<p class="text-right" style="padding-top:25px;">
+			
+			</p>
+			  </div>
+			</div>
+		</div>
+	</div><!-- large 8 -->
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">
