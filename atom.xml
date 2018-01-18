@@ -4,7 +4,7 @@
   <title><![CDATA[lxp121 personal blog]]></title>
   <link href="lxp121.github.io/atom.xml" rel="self"/>
   <link href="lxp121.github.io/"/>
-  <updated>2018-01-17T16:37:48+08:00</updated>
+  <updated>2018-01-18T10:01:54+08:00</updated>
   <id>lxp121.github.io/</id>
   <author>
     <name><![CDATA[]]></name>
@@ -13,7 +13,7 @@
   <generator uri="http://www.mweb.im/">MWeb</generator>
   
   <entry>
-    <title type="html"><![CDATA[深度学习中的优化调参细节]]></title>
+    <title type="html"><![CDATA[深度学习中的优化调参细节（转帖）]]></title>
     <link href="lxp121.github.io/15160785121571.html"/>
     <updated>2018-01-16T12:55:12+08:00</updated>
     <id>lxp121.github.io/15160785121571.html</id>
@@ -52,11 +52,17 @@
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[TensorRT Plugin APIs]]></title>
+    <title type="html"><![CDATA[TensorRT Plugin APIs 介绍（草稿）]]></title>
     <link href="lxp121.github.io/15148637545035.html"/>
     <updated>2018-01-02T11:29:14+08:00</updated>
     <id>lxp121.github.io/15148637545035.html</id>
     <content type="html"><![CDATA[
+<p>TensorRT 中一个非常重要的特性是对于Plugin的支持。目前来说，标准Caffe中的CNN相关神经网络层已经完全支持。但是有很多改动版本的Caffe里面新添加的网络层是不支持的。例如SSD网络里面的priorbox, flatten, permute, detecion_out等。这些网络层在tensorRT里面可以使用Plugin的方式来支持。<br/>
+因为整体上说，tensorRT的优化主要针对CBR (convolution-bias-relu)的合并，卷积的优化计算，低精度（int8，fp16）也主要是针对卷积层进行的。因此少量的plugin不会对性能产生较大影响。<br/>
+但是对于YOLOv2这个网络，使用了目前tensorRT里面还不直接支持的PReLU, 如果把这个层使用plugin来实现，会出现CBR过程被打断，一些优化会受到影响，整体性能提高幅度可能不大。</p>
+
+<p>本文先简要介绍一下定义一个plugin需要重载的IPlugin里面的函数。</p>
+
 <h2 id="toc_0">When creating the network (from parser or API)</h2>
 
 <ul>

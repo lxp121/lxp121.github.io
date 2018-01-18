@@ -105,12 +105,18 @@
 			<div class="article">
                 <a class="clearlink" href="15148637545035.html">
                 
-                  <h1>TensorRT Plugin APIs</h1>
+                  <h1>TensorRT Plugin APIs 介绍（草稿）</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h2 id="toc_0">When creating the network (from parser or API)</h2>
+                        	<p>TensorRT 中一个非常重要的特性是对于Plugin的支持。目前来说，标准Caffe中的CNN相关神经网络层已经完全支持。但是有很多改动版本的Caffe里面新添加的网络层是不支持的。例如SSD网络里面的priorbox, flatten, permute, detecion_out等。这些网络层在tensorRT里面可以使用Plugin的方式来支持。<br/>
+因为整体上说，tensorRT的优化主要针对CBR (convolution-bias-relu)的合并，卷积的优化计算，低精度（int8，fp16）也主要是针对卷积层进行的。因此少量的plugin不会对性能产生较大影响。<br/>
+但是对于YOLOv2这个网络，使用了目前tensorRT里面还不直接支持的PReLU, 如果把这个层使用plugin来实现，会出现CBR过程被打断，一些优化会受到影响，整体性能提高幅度可能不大。</p>
+
+<p>本文先简要介绍一下定义一个plugin需要重载的IPlugin里面的函数。</p>
+
+<h2 id="toc_0">When creating the network (from parser or API)</h2>
 
 <ul>
 <li>getNbOutputs()</li>
@@ -235,13 +241,13 @@
 	      
 		      
 			      <li class="post">
-			        <a href="15160785121571.html">深度学习中的优化调参细节</a>
+			        <a href="15160785121571.html">深度学习中的优化调参细节（转帖）</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15148637545035.html">TensorRT Plugin APIs</a>
+			        <a href="15148637545035.html">TensorRT Plugin APIs 介绍（草稿）</a>
 			      </li>
 		     
 		   
