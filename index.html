@@ -177,6 +177,11 @@
 
 <p>本文先简要介绍一下定义一个plugin需要重载的IPlugin里面的函数。</p>
 
+<p>总体上来说，TensorRT运行分为若干个步骤：<br/>
+1. 创建网络(create network)，这一步可以是通过caffe 的parser，也就是以caffe的prototxt和caffemodel作为输入。nvCafferParser 回去分析这个网络结构，并且解析出其中各个网络层，如果是tensorRT已经支持的网络层，则会调用相应的tensorRT的API来添加到tensorRT的network中。如果是没有的网络层，但是已经在PluginFactory工厂里面定义了（通过isPlugin(layerName)来判断），则会标记为plugin添加到network中。<br/>
+2. 创建TensorRT引擎(create TensorRT engine)，这一步是tensorRT回去根据配置生成优化engine。主要的优化项目包括：合并网络层（例如CBR的合并，多个相同大小的CBR进行进一步合并），消除多余的网络层（例如concat层），根据提供的最大Batch数(maxium batch size)，workspace来选择相应的算法和CUDA实现(kernel)，预分配中间变量、输入输出buffer等。<br/>
+3. 运行时（runtime), 在这个阶段，</p>
+
 <h2 id="toc_0">When creating the network (from parser or API)</h2>
 
 <ul>
