@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  TensorRT - lxp121 personal blog
+  CUDA - lxp121 personal blog
   
   </title>
   
@@ -105,52 +105,151 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15148637545035.html">
+                <a class="clearlink" href="15165232915154.html">
                 
-                  <h1>TensorRT Plugin APIs 介绍（草稿）</h1>
+                  <h1>Volatile 限定词（Qualifier）和内存围栏（memory fence)</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>TensorRT 中一个非常重要的特性是对于Plugin的支持。目前来说，标准Caffe中的CNN相关神经网络层已经完全支持。但是有很多改动版本的Caffe里面新添加的网络层是不支持的。例如SSD网络里面的priorbox, flatten, permute, detecion_out等。这些网络层在tensorRT里面可以使用Plugin的方式来支持。<br/>
-因为整体上说，tensorRT的优化主要针对CBR (convolution-bias-relu)的合并，卷积的优化计算，低精度（int8，fp16）也主要是针对卷积层进行的。因此少量的plugin不会对性能产生较大影响。<br/>
-但是对于YOLOv2这个网络，使用了目前tensorRT里面还不直接支持的PReLU, 如果把这个层使用plugin来实现，会出现CBR过程被打断，一些优化会受到影响，整体性能提高幅度可能不大。</p>
+                        	<p>这边blog是从nvidia blog上最新的文章<a href="https://devblogs.nvidia.com/using-cuda-warp-level-primitives/">Using CUDA Warp-Level Primitives</a> 引申而来。原文主要介绍了CUDA 9.0中引入的一些新的warp级别的原语(primitives)。本文中就里面提到一些概念进行引申讲解。</p>
 
-<p>本文先简要介绍一下定义一个plugin需要重载的IPlugin里面的函数。</p>
+<p>在讲到__syncwarp()时候提到了：</p>
 
-<p>总体上来说，TensorRT运行分为若干个步骤：<br/>
-1. 创建网络(create network)，这一步可以是通过caffe 的parser，也就是以caffe的prototxt和caffemodel作为输入。nvCafferParser 回去分析这个网络结构，并且解析出其中各个网络层，如果是tensorRT已经支持的网络层，则会调用相应的tensorRT的API来添加到tensorRT的network中。如果是没有的网络层，但是已经在PluginFactory工厂里面定义了（通过isPlugin(layerName)来判断），则会标记为plugin添加到network中。<br/>
-2. 创建TensorRT引擎(create TensorRT engine)，这一步是tensorRT回去根据配置生成优化engine。主要的优化项目包括：合并网络层（例如CBR的合并，多个相同大小的CBR进行进一步合并），消除多余的网络层（例如concat层），根据提供的最大Batch数(maxium batch size)，workspace来选择相应的算法和CUDA实现(kernel)，预分配中间变量、输入输出buffer等。<br/>
-3. 运行时（runtime), 在这个阶段，</p>
+<blockquote>
+<p>The __syncwarp() primitive causes the executing thread to wait until all threads specified in mask have executed a __syncwarp() (with the same mask) before resuming execution. <strong>It also provides a memory fence to allow threads to communicate via memory before and after calling the primitive.</strong></p>
+</blockquote>
 
-<h2 id="toc_0">When creating the network (from parser or API)</h2>
+<p>那这个<strong>memory fence</strong>是一个什么概念呢？</p>
 
-<ul>
-<li>getNbOutputs()</li>
-<li>getOutputDimensions()</li>
-</ul>
+<h2 id="toc_0">内存围栏（memory fence)</h2>
 
-<h2 id="toc_1">By the builder</h2>
+<p>CUDA 编程模型假定了一种弱顺序(weakly-ordered)内存模型。也就是说一个CUDA thread 将数据写入共享内存(shared memory)，全局内存（global memory)，pinned CPU内存（page-locked host memory)，或者对等设备（peer device，可以与当前设备进行P2P通信的设备）的内存时，并不需要与数据被观察到的顺序一致。</p>
 
-<ul>
-<li>configure()</li>
-<li>getWorkSpaceSize()</li>
-</ul>
+<p>用一个实际例子来说明：<br/>
+假设下面的代码中，thread 1 执行writeXY()，而thread 2 执行readXY()，thread 2读取到的值是多少呢？</p>
 
-<h2 id="toc_2">At runtime</h2>
+<pre><code class="language-cpp">__device__ volatile int X = 1, Y = 2; 
 
-<ul>
-<li>initialize() when the engine context is constructed</li>
-<li>enqueue() at inference time</li>
-<li>terminate() when the engine context is destroyed</li>
-</ul>
+__device__ void writeXY() { 
+    X = 10; Y = 20; 
+} 
 
-<h2 id="toc_3">For serialization</h2>
+__device__ void readXY() { 
+    int A = X; int B = Y; 
+}
+</code></pre>
+
+<p>如果是一个<strong>强顺序内存模型(strongly-ordered memory model)</strong>中，只有可能是</p>
 
 <ul>
-<li>getSerializationSize()</li>
-<li>serialize()</li>
+<li>A=1, B=2</li>
+<li>A=10, B=2</li>
+<li>A=10, B=20</li>
 </ul>
+
+<p>因为虽然两个threads的执行完成可能有先有后，但是A=X, B=Y的必须在语义学上是前后关系（也就是被观察顺序）。因此，上述三种情况分别是：</p>
+
+<ul>
+<li>A=1, B=2：thread 1 没有执行完X=10, Y=20的操作；thread 2 已经执行完了A=X, B=Y的操作。</li>
+<li>A=10, B=2：thread 2 执行完X=10, 还没有执行Y=20；thread 2 已经执行完了A=X, B=Y的操作，所以Y的值还没有更新。</li>
+<li>A=10, B=20：thread 1 执行完X=10, Y=20；thread 2读取了对应数据，X和Y都是最新的值。</li>
+</ul>
+
+<p>但是在CUDA使用的<strong>弱顺序内存模型</strong>中，可能会出现：</p>
+
+<ul>
+<li>A=1, B=20</li>
+</ul>
+
+<p>的情况。也就是说，虽然语义上A=10比B=20更早出现，但是CUDA的内存模型并不保证这一顺序。</p>
+
+<p><strong>内存围栏函数可以被用来保证实际内存读取顺序和语义学顺序相同。</strong><br/>
+在CUDA中提供了三个内存围栏函数：</p>
+
+<pre><code class="language-cpp">void __threadfence_block();
+void __threadfence();
+void __threadfence_system();
+</code></pre>
+
+<p>这些函数都保证在函数调用前的内存操作不会晚于函数调用后的。</p>
+
+<p>我们考虑一个比较常见的情景，这个技巧会在很多地方用到，大家也可以自己思考一下对这个问题有一些什么样的解决方案：<br/>
+用一次核函数（kernel）调用计算N个数的和，也就是我们常说的reduction操作。我们实现的逻辑是：</p>
+
+<ul>
+<li>每个block首先计算这个数组的一个子集，并将计算结果写到全局内存中。提示，在改部分计算中可以使用warp原语、共享内存等方法来进一步加速，请参考相应的post。</li>
+<li>当所有block都完成了这个计算，最后一个block从全局内存中读取这些部分和，并且将他们相加得到最终结果。</li>
+<li>为了确认哪一个block最后完成操作。每一个block都会用原子加法(atomic add)将一个计数器（counter）加一。这样，最后一个block就是读取到counter值为gridDim.x-1的那个block。</li>
+</ul>
+
+<p>如果没有在存储部分和与计数器加一之间插入内存未来，计数器可能会在部分和存储完成之前加一，这样最终计算的结果可能会缺失一部分。</p>
+
+<pre><code class="language-cpp">__device__ unsigned int count = 0; 
+__shared__ bool isLastBlockDone; 
+
+__global__ void sum(const float* array, unsigned int N, volatile float* result) 
+{ 
+    // Each block sums a subset of the input array. 
+    float partialSum = calculatePartialSum(array, N); 
+    
+    if (threadIdx.x == 0) { 
+        // Thread 0 of each block stores the partial sum 
+        // to global memory. The compiler will use 
+        // a store operation that bypasses the L1 cache 
+        // since the &quot;result&quot; variable is declared as 
+        // volatile. This ensures that the threads of 
+        // the last block will read the correct partial 
+        // sums computed by all other blocks. 
+        result[blockIdx.x] = partialSum; 
+        
+        // Thread 0 makes sure that the incrementation 
+        // of the &quot;count&quot; variable is only performed after 
+        // the partial sum has been written to global memory. 
+        __threadfence(); 
+        
+        // Thread 0 signals that it is done. 
+        unsigned int value = atomicInc(&amp;count, gridDim.x); 
+        
+        // Thread 0 determines if its block is the last 
+        // block to be done. 
+        isLastBlockDone = (value == (gridDim.x - 1)); } 
+        
+        // Synchronize to make sure that each thread reads 
+        // the correct value of isLastBlockDone. 
+        __syncthreads(); 
+        
+        if (isLastBlockDone) { 
+            // The last block sums the partial sums 
+            // stored in result[0 .. gridDim.x-1] 
+            float totalSum = calculateTotalSum(result); 
+            
+            if (threadIdx.x == 0) { 
+                // Thread 0 of last block stores the total sum 
+                // to global memory and resets the count 
+                // varialble, so that the next kernel call 
+                // works properly. 
+                result[0] = totalSum; count = 0; 
+            } 
+        } 
+    }
+</code></pre>
+
+<p>内存围栏只会影响一个线程中内存操作的顺序。他并不能像__syncthreads()那样保证这些内存操作对于同block中的其他线程可见。也就是说，由于有L1 cache的存在，其他block可能读取到的是没有更新的result值。在我们以往的经验中，这个是用__syncthreads()来保证的。在这个例子里，volatile限定词被用来保证内存操作的可见性。</p>
+
+<h2 id="toc_1">volatile 限定词（Qualifier）</h2>
+
+<p>从<a href="http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#volatile-qualifier">CUDA编程手册</a>我们可以看到：</p>
+
+<blockquote>
+<p>The compiler is free to optimize reads and writes to global or shared memory (for example, by caching global reads into registers or L1 cache) as long as it respects the memory ordering semantics of memory fence functions (Memory Fence Functions) and memory visibility semantics of synchronization functions (Synchronization Functions).</p>
+
+<p>These optimizations can be disabled using the volatile keyword: If a variable located in global or shared memory is declared as volatile, the compiler assumes that its value can be changed or used at any time by another thread and therefore any reference to this variable compiles to an actual memory read or write instruction.</p>
+</blockquote>
+
+<p>对于nvcc编译器来说，编译器是可以自由地优化全局内存(global memory)和共享内存(shared memory)的读写顺序。例如，这种优化可以是通过将共享内存的读取缓存到寄存器或者L1缓存中来实现的。但是，这种优化，必须要服从由内存围栏(memory fence)函数所定义出的内存顺序语义(memory ordering semantics)，还必须要服从同步函数(synchronization function)所限制的内存可见性语义（memory visibility semantics)。</p>
+
+<p>如果我们对某一个内存（全局内存或共享内存）使用了volatile这个关键词，<strong>编译器将认为该内存的值允许在任意时刻被其他thread修改</strong>。因此，该变量的所有引用，都会被编译为真实的读写指令。</p>
 
                         
                       </div>
@@ -159,10 +258,10 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2018/1/2</span>
+                    <span class="date">2018/1/21</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='trt.html'>TensorRT</a></span>
+          					    <span class="posted-in"><a href='cuda.html'>CUDA</a></span>
           				   
                   </div>
                   <div class="more-right right">
