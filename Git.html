@@ -248,10 +248,25 @@ git checkout newbranch
 
 <h3 id="toc_4">复现</h3>
 
-<p>使用<br/>
-<code><br/>
-touch M1, git add *, git commit -m &quot;M1&quot;<br/>
-</code></p>
+<p>使用:</p>
+
+<pre><code>touch M1 &amp;&amp; git add * &amp;&amp; git commit -m &quot;M1&quot;
+touch M2 &amp;&amp; git add * &amp;&amp; git commit -m &quot;M2&quot;
+touch M3 &amp;&amp; git add * &amp;&amp; git commit -m &quot;M3&quot;
+
+git checkout -b topic
+touch T1 &amp;&amp; git add * &amp;&amp; git commit -m &quot;T1&quot;
+touch T2 &amp;&amp; git add * &amp;&amp; git commit -m &quot;T2&quot;
+touch T3 &amp;&amp; git add * &amp;&amp; git commit -m &quot;T3&quot;
+
+git checkout master
+git reset HEAD~2
+touch M3_primer &amp;&amp; rm M2 M3 &amp;&amp; git commit -m &quot;M3&#39;&quot;
+git push --force
+
+git checkout topic
+git rebase master
+</code></pre>
 
 <ul>
 <li>创建M1-&gt;M2-&gt;M3，此时master 包含文件: M1, M2, M3</li>

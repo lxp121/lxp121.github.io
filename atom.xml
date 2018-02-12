@@ -4,7 +4,7 @@
   <title><![CDATA[lxp121's BLOG on CUDA and DL]]></title>
   <link href="china.xipengli.com/atom.xml" rel="self"/>
   <link href="china.xipengli.com/"/>
-  <updated>2018-01-22T09:22:38+08:00</updated>
+  <updated>2018-02-12T16:12:14+08:00</updated>
   <id>china.xipengli.com/</id>
   <author>
     <name><![CDATA[]]></name>
@@ -130,10 +130,25 @@ git checkout newbranch
 
 <h3 id="toc_4">复现</h3>
 
-<p>使用<br/>
-<code><br/>
-touch M1, git add *, git commit -m &quot;M1&quot;<br/>
-</code></p>
+<p>使用:</p>
+
+<pre><code>touch M1 &amp;&amp; git add * &amp;&amp; git commit -m &quot;M1&quot;
+touch M2 &amp;&amp; git add * &amp;&amp; git commit -m &quot;M2&quot;
+touch M3 &amp;&amp; git add * &amp;&amp; git commit -m &quot;M3&quot;
+
+git checkout -b topic
+touch T1 &amp;&amp; git add * &amp;&amp; git commit -m &quot;T1&quot;
+touch T2 &amp;&amp; git add * &amp;&amp; git commit -m &quot;T2&quot;
+touch T3 &amp;&amp; git add * &amp;&amp; git commit -m &quot;T3&quot;
+
+git checkout master
+git reset HEAD~2
+touch M3_primer &amp;&amp; rm M2 M3 &amp;&amp; git commit -m &quot;M3&#39;&quot;
+git push --force
+
+git checkout topic
+git rebase master
+</code></pre>
 
 <ul>
 <li>创建M1-&gt;M2-&gt;M3，此时master 包含文件: M1, M2, M3</li>
