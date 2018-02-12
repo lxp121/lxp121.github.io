@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  TensorRT - lxp121's BLOG on CUDA and DL
+  深度学习中的优化调参细节（转帖） - lxp121's BLOG on CUDA and DL
   
   </title>
   
@@ -98,105 +98,102 @@
        
 
  <script type="text/javascript">
-	$(function(){
-		$('#menu_item_index').addClass('is_active');
-	});
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
 </script>
 <div class="row">
-	<div class="large-8 medium-8 columns">
-		<div class="markdown-body home-categories">
-		
-			<div class="article">
-                <a class="clearlink" href="20180201_TRT_Plugin_API.html">
-                
-                  <h1>TensorRT Plugin APIs 介绍（草稿）</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>TensorRT 中一个非常重要的特性是对于Plugin的支持。目前来说，标准Caffe中的CNN相关神经网络层已经完全支持。但是有很多改动版本的Caffe里面新添加的网络层是不支持的。例如SSD网络里面的priorbox, flatten, permute, detecion_out等。这些网络层在tensorRT里面可以使用Plugin的方式来支持。<br/>
-因为整体上说，tensorRT的优化主要针对CBR (convolution-bias-relu)的合并，卷积的优化计算，低精度（int8，fp16）也主要是针对卷积层进行的。因此少量的plugin不会对性能产生较大影响。<br/>
-但是对于YOLOv2这个网络，使用了目前tensorRT里面还不直接支持的PReLU, 如果把这个层使用plugin来实现，会出现CBR过程被打断，一些优化会受到影响，整体性能提高幅度可能不大。</p>
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>深度学习中的优化调参细节（转帖）</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2018/1/16</span>
 
-<p>本文先简要介绍一下定义一个plugin需要重载的IPlugin里面的函数。</p>
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='dl.html'>Deep Learning</a></span>
+           
+         
+          <span class="comments">
+            
 
-<p>总体上来说，TensorRT运行分为若干个步骤：</p>
+            
+          </span>
 
-<ol>
-<li>创建网络(create network)，这一步可以是通过caffe 的parser，也就是以caffe的prototxt和caffemodel作为输入。nvCafferParser 回去分析这个网络结构，并且解析出其中各个网络层，如果是tensorRT已经支持的网络层，则会调用相应的tensorRT的API来添加到tensorRT的network中。如果是没有的网络层，但是已经在PluginFactory工厂里面定义了（通过isPlugin(layerName)来判断），则会标记为plugin添加到network中。</li>
-<li>创建TensorRT引擎(create TensorRT engine)，这一步是tensorRT回去根据配置生成优化engine。主要的优化项目包括：合并网络层（例如CBR的合并，多个相同大小的CBR进行进一步合并），消除多余的网络层（例如concat层），根据提供的最大Batch数(maxium batch size)，workspace来选择相应的算法和CUDA实现(kernel)，预分配中间变量、输入输出buffer等。</li>
-<li>运行时（runtime), 在这个阶段，</li>
-</ol>
+        </div>
+      </div><!-- article -->
 
-<h2 id="toc_0">When creating the network (from parser or API)</h2>
-
-<ul>
-<li>getNbOutputs()</li>
-<li>getOutputDimensions()</li>
-</ul>
-
-<h2 id="toc_1">By the builder</h2>
+      <div class="article-content">
+      <h2 id="toc_0">深度学习中的技巧</h2>
 
 <ul>
-<li>configure()</li>
-<li>getWorkSpaceSize()</li>
+<li>初始化参数尽量小一些，这样 softmax 的回归输出更加接近均匀分布，使得刚开始网络并不确信数据属于哪一类；另一方面从数值优化上看我们希望我们的参数具有一致的方差（一致的数量级），这样我们的梯度下降法下降也会更快。同时为了使每一层的激励值保持一定的方差，我们在初始化参数（不包括偏置项）的方差可以与输入神经元的平方根成反比。</li>
+<li>学习率（learning rate）的设置应该随着迭代次数的增加而减小，个人比较喜欢每迭代完一次epoch也就是整个数据过一遍，然后对学习率进行变化，这样能够保证每个样本得到了公平的对待。</li>
+<li>滑动平均模型，在训练的过程中不断的对参数求滑动平均这样能够更有效的保持稳定性，使其对当前参数更新不敏感。例如加动量项的随机梯度下降法就是在学习率上应用滑动平均模型。</li>
+<li>在验证集上微小的提升未必可信，一个常用的准则是增加了30个以上的正确样本，能够比较确信算法有了一定的提升。 </li>
+<li>不要太相信模型开始的学习速度，这与最终的结果基本没有什么关系。一个低的学习速率往往能得到较好的模型。</li>
+<li>在深度学习中，常用的防止过拟合的方法除了正则化，dropout和pooling之外，还有提前停止训练的方法——就是看到我们在验证集的上的正确率开始下降就停止训练。</li>
+<li>当激活函数是RELU时，我们在初始化偏置项时，为了避免过多的死亡节点（激活值为0）一般可以初始化为一个较小的正值。</li>
+<li>基于随机梯度下降的改进优化算法有很多种，在不熟悉调参的情况，建议使用Adam方法</li>
+<li>训练过程不仅要观察训练集和测试集的loss是否下降、正确率是否提高，对于参数以及激活值的分布情况也要及时观察，要有一定的波动。</li>
+<li>如果我们设计的网络不work，在训练集的正确率也很低的话，我们可以减小样本数量同时去掉正则化项，然后进行调参，如果正确率还是不高的话，就说明我们设计的网络结果可能有问题。</li>
+<li>fine-tuning的时候，可以把新加层的学习率调高，重用层的学习率可以设置的相对较低。</li>
+<li>在隐藏层的激活函数，tanh往往比sigmoid表现更好。</li>
+<li>针对梯度爆炸的情况我们可以使用梯度截断来解决，尤其在RNN中由于存在相同的循环结构，导致相同参数矩阵的连乘，更加容易产生梯度爆炸。当然，使用LSTM和GRU等更加优化的模型往往是更好地选择。</li>
+<li>正则化输入，也就是让特征都保持在0均值和1方差。（注意做特征变换时请保持训练集合测试集进行了相同的变化）</li>
+<li>梯度检验：当我们的算法在训练出现问题而进行debug时，可以考虑使用近似的数值梯度和计算的梯度作比较检验梯度是否计算正确。</li>
+<li>搜索超参数时针对经典的网格搜索方法，这里有两点可以改善的地方：1）不用网格，用随机值，因为这样我们一次实验参数覆盖范围更广，尤其在参数对结果影响级别相差很大的情况下。2）不同数量级的搜索密度是不一样的，不能均分。</li>
 </ul>
 
-<h2 id="toc_2">At runtime</h2>
+<h2 id="toc_1">CNN中的独特技巧</h2>
 
 <ul>
-<li>initialize() when the engine context is constructed</li>
-<li>enqueue() at inference time</li>
-<li>terminate() when the engine context is destroyed</li>
+<li>CNN中将一个大尺寸的卷积核可以分解为多层的小尺寸卷积核或者分成多层的一维卷积。这样能够减少参数增加非线性。</li>
+<li>CNN中的网络设计应该是逐渐减小图像尺寸，同时增加通道数，让空间信息转化为高阶抽象的特征信息。</li>
+<li>CNN中可以利用Inception方法来提取不同抽象程度的高阶特征，用ResNet的思想来加深网络的层数。</li>
+<li>CNN处理图像时，常常会对原图进行旋转、裁剪、亮度、色度、饱和度等变化以增大数据集增加鲁棒性。</li>
 </ul>
 
-<h2 id="toc_3">For serialization</h2>
 
-<ul>
-<li>getSerializationSize()</li>
-<li>serialize()</li>
-</ul>
+    
 
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2018/1/2</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='trt.html'>TensorRT</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
+      </div>
 
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-              
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="20180121_TF_to_TRT.html" 
+          title="Previous Post: TensorFlow模型的保存，已经TensoRT中tensorFlow 模型的导入（草稿）">&laquo; TensorFlow模型的保存，已经TensoRT中tensorFlow 模型的导入（草稿）</a>
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="20180201_TRT_Plugin_API.html" 
+          title="Next Post: TensorRT Plugin APIs 介绍（草稿）">TensorRT Plugin APIs 介绍（草稿） &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
 
 
-			<div class="row">
-			  <div class="large-6 columns">
-			  <p class="text-left" style="padding-top:25px;">
-			   
-			  </p>
-			  </div>
-			  <div class="large-6 columns">
-			<p class="text-right" style="padding-top:25px;">
-			
-			</p>
-			  </div>
-			</div>
-		</div>
-	</div><!-- large 8 -->
+
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">

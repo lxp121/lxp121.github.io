@@ -1,47 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
-  <loc>lxp121.github.io/</loc>
-  <lastmod>2018-01-21T17:43:21+08:00</lastmod>
+  <loc>china.xipengli.com/</loc>
+  <lastmod>2018-02-12T16:12:14+08:00</lastmod>
 </url>
 
 <url>
-  <loc>lxp121.github.io/15165232915154.html</loc>
+  <loc>china.xipengli.com/20180212_git_gitignore.html</loc>
+  <lastmod>2018-02-12T16:05:44+08:00</lastmod>
+</url>
+
+<url>
+  <loc>china.xipengli.com/20180212_git_move_commits_to_new_branch.html</loc>
+  <lastmod>2018-02-12T13:06:17+08:00</lastmod>
+</url>
+
+<url>
+  <loc>china.xipengli.com/20180125_CUDA_Warp_Level_Primitives.html</loc>
+  <lastmod>2018-01-25T12:07:46+08:00</lastmod>
+</url>
+
+<url>
+  <loc>china.xipengli.com/20180121_CUDA_Volatile_And_Memory_Fence.html</loc>
   <lastmod>2018-01-21T16:28:11+08:00</lastmod>
 </url>
 
 <url>
-  <loc>lxp121.github.io/15165220871128.html</loc>
+  <loc>china.xipengli.com/20180121_TF_to_TRT.html</loc>
   <lastmod>2018-01-21T16:08:07+08:00</lastmod>
 </url>
 
 <url>
-  <loc>lxp121.github.io/15160785121571.html</loc>
+  <loc>china.xipengli.com/20180116_DL_Tuning_Reprint.html</loc>
   <lastmod>2018-01-16T12:55:12+08:00</lastmod>
 </url>
 
 <url>
-  <loc>lxp121.github.io/15148637545035.html</loc>
+  <loc>china.xipengli.com/20180201_TRT_Plugin_API.html</loc>
   <lastmod>2018-01-02T11:29:14+08:00</lastmod>
 </url>
 
 
 <url>
-  <loc>lxp121.github.io/About.html</loc>
-  <lastmod>2018-01-18T10:05:19+08:00</lastmod>
+  <loc>china.xipengli.com/About.html</loc>
+  <lastmod>2018-01-22T09:25:03+08:00</lastmod>
 </url>
 
 
 <url>
-  <loc>lxp121.github.io/dl.html</loc>
+  <loc>china.xipengli.com/dl.html</loc>
 </url>
 
 <url>
-  <loc>lxp121.github.io/cuda.html</loc>
+  <loc>china.xipengli.com/cuda.html</loc>
 </url>
 
 <url>
-  <loc>lxp121.github.io/trt.html</loc>
+  <loc>china.xipengli.com/trt.html</loc>
+</url>
+
+<url>
+  <loc>china.xipengli.com/Git.html</loc>
 </url>
 
 

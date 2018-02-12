@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  TensorRT - lxp121's BLOG on CUDA and DL
+  TensorRT Plugin APIs 介绍（草稿） - lxp121's BLOG on CUDA and DL
   
   </title>
   
@@ -98,23 +98,36 @@
        
 
  <script type="text/javascript">
-	$(function(){
-		$('#menu_item_index').addClass('is_active');
-	});
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
 </script>
 <div class="row">
-	<div class="large-8 medium-8 columns">
-		<div class="markdown-body home-categories">
-		
-			<div class="article">
-                <a class="clearlink" href="20180201_TRT_Plugin_API.html">
-                
-                  <h1>TensorRT Plugin APIs 介绍（草稿）</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>TensorRT 中一个非常重要的特性是对于Plugin的支持。目前来说，标准Caffe中的CNN相关神经网络层已经完全支持。但是有很多改动版本的Caffe里面新添加的网络层是不支持的。例如SSD网络里面的priorbox, flatten, permute, detecion_out等。这些网络层在tensorRT里面可以使用Plugin的方式来支持。<br/>
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>TensorRT Plugin APIs 介绍（草稿）</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2018/1/2</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='trt.html'>TensorRT</a></span>
+           
+         
+          <span class="comments">
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <p>TensorRT 中一个非常重要的特性是对于Plugin的支持。目前来说，标准Caffe中的CNN相关神经网络层已经完全支持。但是有很多改动版本的Caffe里面新添加的网络层是不支持的。例如SSD网络里面的priorbox, flatten, permute, detecion_out等。这些网络层在tensorRT里面可以使用Plugin的方式来支持。<br/>
 因为整体上说，tensorRT的优化主要针对CBR (convolution-bias-relu)的合并，卷积的优化计算，低精度（int8，fp16）也主要是针对卷积层进行的。因此少量的plugin不会对性能产生较大影响。<br/>
 但是对于YOLOv2这个网络，使用了目前tensorRT里面还不直接支持的PReLU, 如果把这个层使用plugin来实现，会出现CBR过程被打断，一些优化会受到影响，整体性能提高幅度可能不大。</p>
 
@@ -157,46 +170,40 @@
 <li>serialize()</li>
 </ul>
 
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2018/1/2</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='trt.html'>TensorRT</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
 
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-              
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="20180116_DL_Tuning_Reprint.html" 
+          title="Previous Post: 深度学习中的优化调参细节（转帖）">&laquo; 深度学习中的优化调参细节（转帖）</a>
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
 
 
-			<div class="row">
-			  <div class="large-6 columns">
-			  <p class="text-left" style="padding-top:25px;">
-			   
-			  </p>
-			  </div>
-			  <div class="large-6 columns">
-			<p class="text-right" style="padding-top:25px;">
-			
-			</p>
-			  </div>
-			</div>
-		</div>
-	</div><!-- large 8 -->
+
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">

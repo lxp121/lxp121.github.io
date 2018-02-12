@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  TensorRT - lxp121's BLOG on CUDA and DL
+  Git 将最近改动移到新的分支(branch)上 - lxp121's BLOG on CUDA and DL
   
   </title>
   
@@ -98,105 +98,182 @@
        
 
  <script type="text/javascript">
-	$(function(){
-		$('#menu_item_index').addClass('is_active');
-	});
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
 </script>
 <div class="row">
-	<div class="large-8 medium-8 columns">
-		<div class="markdown-body home-categories">
-		
-			<div class="article">
-                <a class="clearlink" href="20180201_TRT_Plugin_API.html">
-                
-                  <h1>TensorRT Plugin APIs 介绍（草稿）</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>TensorRT 中一个非常重要的特性是对于Plugin的支持。目前来说，标准Caffe中的CNN相关神经网络层已经完全支持。但是有很多改动版本的Caffe里面新添加的网络层是不支持的。例如SSD网络里面的priorbox, flatten, permute, detecion_out等。这些网络层在tensorRT里面可以使用Plugin的方式来支持。<br/>
-因为整体上说，tensorRT的优化主要针对CBR (convolution-bias-relu)的合并，卷积的优化计算，低精度（int8，fp16）也主要是针对卷积层进行的。因此少量的plugin不会对性能产生较大影响。<br/>
-但是对于YOLOv2这个网络，使用了目前tensorRT里面还不直接支持的PReLU, 如果把这个层使用plugin来实现，会出现CBR过程被打断，一些优化会受到影响，整体性能提高幅度可能不大。</p>
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Git 将最近改动移到新的分支(branch)上</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2018/2/12</span>
 
-<p>本文先简要介绍一下定义一个plugin需要重载的IPlugin里面的函数。</p>
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Git.html'>Git</a></span>
+           
+         
+          <span class="comments">
+            
 
-<p>总体上来说，TensorRT运行分为若干个步骤：</p>
+            
+          </span>
 
-<ol>
-<li>创建网络(create network)，这一步可以是通过caffe 的parser，也就是以caffe的prototxt和caffemodel作为输入。nvCafferParser 回去分析这个网络结构，并且解析出其中各个网络层，如果是tensorRT已经支持的网络层，则会调用相应的tensorRT的API来添加到tensorRT的network中。如果是没有的网络层，但是已经在PluginFactory工厂里面定义了（通过isPlugin(layerName)来判断），则会标记为plugin添加到network中。</li>
-<li>创建TensorRT引擎(create TensorRT engine)，这一步是tensorRT回去根据配置生成优化engine。主要的优化项目包括：合并网络层（例如CBR的合并，多个相同大小的CBR进行进一步合并），消除多余的网络层（例如concat层），根据提供的最大Batch数(maxium batch size)，workspace来选择相应的算法和CUDA实现(kernel)，预分配中间变量、输入输出buffer等。</li>
-<li>运行时（runtime), 在这个阶段，</li>
-</ol>
+        </div>
+      </div><!-- article -->
 
-<h2 id="toc_0">When creating the network (from parser or API)</h2>
+      <div class="article-content">
+      <h2 id="toc_0">背景及 <em>错误</em> workflow</h2>
+
+<p>我们有时候会发现针对某个项目做了大量改动，在push的时候发现自己并没有push权限。当然，这也不是正常的操作流程，正常的流程应该是：</p>
+
+<pre><code class="language-flow">st=&gt;start: fork 一个新的分支
+e=&gt;end: 推到服务器端
+op=&gt;operation: 在新分支上做相应修改
+op2=&gt;operation: 提交到新的服务器
+op3=&gt;operation: 提交merge request
+op4=&gt;operation: master 同意merge request，合并到现有branch中
+
+st-&gt;op-&gt;op2-&gt;op3-&gt;op4-&gt;e
+</code></pre>
+
+<p>但是这样的操作有时候会被忘记，在已经提交了多个request之后，如何修改呢？<br/>
+网上错误的教程是这样的：</p>
+
+<pre><code class="language-bash"># WRONG workflow, not test!!
+git branch -t newbranch
+git reset --hard HEAD~3
+git checkout newbranch
+</code></pre>
+
+<p>这样的后果是你下一次运行git rebase (或者git pull --rebase)的时候，这三次提交会消失。</p>
+
+<h2 id="toc_1">正确的workflow</h2>
+
+<pre><code class="language-bash">git reset --keep HEAD~3
+git checkout -t -b newbranch
+git cherry-pick ..HEAD@{2}
+</code></pre>
+
+<p>这三行代码进行了如下工作：</p>
 
 <ul>
-<li>getNbOutputs()</li>
-<li>getOutputDimensions()</li>
+<li>首先它抛弃了最近三次提交。--keep 和 --hard很相似，但是更加安全一点，如果出现错误，不会丢弃没有提交的改动。</li>
+<li>创建一个新的branch。</li>
+<li>最后，使用cherry-picks 这个三个提交到新的分支 newbranch 上。因为这三个提交不再被任何一个分支引用，我们通过<em>relog</em>命令: <em>HEAD@{2}</em> 表示HEAD 两次操作(checkout 和reset)之前的提交。</li>
 </ul>
 
-<h2 id="toc_1">By the builder</h2>
+<p>通常<em>reflog</em>是默认开启的，但是如果手动关闭了，则不能通过..HEAD@{2}找回三次之前的提交。</p>
+
+<p>一个替代的方法是:</p>
+
+<pre><code class="language-bash"># newbranch will omit the 3 most recent commits.
+git checkout -b newbranch HEAD~3
+git branch --set-upstream-to=oldbranch
+# Cherry-picks the extra commits from oldbranch.
+git cherry-pick ..oldbranch
+# Discards the 3 most recent commits from oldbranch.
+git branch --force oldbranch oldbranch~3
+</code></pre>
+
+<h2 id="toc_2">技术解释</h2>
+
+<p>在上面的例子中，为什么 <em>git rebase</em> 会抛弃三次提交呢？这是因为<em>git rebase</em> 默认不会使用--fork-point 选项。</p>
+
+<p>假设你有master分支包含M1，M2和M3三个提交。</p>
+
+<pre><code>M1--M2--M3  &lt;-- origin/master
+         \
+          T1--T2--T3  &lt;-- topic
+</code></pre>
+
+<p>现在，如果有人修改了history，并且使用force-pushing 删除了M2</p>
+
+<pre><code>M1--M3&#39;  &lt;-- origin/master
+ \
+  M2--M3--T1--T2--T3  &lt;-- topic
+</code></pre>
+
+<p>此时因为M3&#39;并不是分支topic里面的元素，因此git rebase 会认为T1-&gt;T3 已经不再需要（上游提交已经被删除）。</p>
+
+<pre><code>M1--M3&#39;  &lt;-- origin/master
+     \
+      T1&#39;--T2&#39;--T3&#39;  &lt;-- topic (rebased)
+</code></pre>
+
+<p>这也是合理的操作。</p>
+
+<p>因此在之前的例子中，</p>
+
+<pre><code class="language-bash">git branch -t newbranch
+git reset --hard HEAD~3
+git checkout newbranch
+</code></pre>
+
+<p>Git将会把newbranch看做是从上游fork出来的一个分支，并且包含三个commits。然后<em>reset --hard</em> 会重写upstream的历史，并且删除三个提交。下一次你使用<em>git rebase</em>, 这三个提交会像其他从upstream里面删除的commit一样被抛弃掉。</p>
+
+<p>但是对于我们这个情况，我们认为这三个commit应该是topic分支的一部分。 因此我们需要从upstream 更早的位置fork（不包含3个提交）。</p>
+
+<h3 id="toc_3">注释</h3>
+
+<p>因为大多数人不会去修改master branch, 因此即使错误的方法也没有很大的问题。</p>
+
+<h3 id="toc_4">复现</h3>
+
+<p>使用<br/>
+<code><br/>
+touch M1, git add *, git commit -m &quot;M1&quot;<br/>
+</code></p>
 
 <ul>
-<li>configure()</li>
-<li>getWorkSpaceSize()</li>
+<li>创建M1-&gt;M2-&gt;M3，此时master 包含文件: M1, M2, M3</li>
+<li>创建topic 分支，此时topic包含：M1, M2, M3, T1, T2, T3</li>
+<li>在master分支上reset到M1，并删除M2和M3两个文件，提交。</li>
+<li>使用git push --froce提交到远端。</li>
+<li>使用git checkout topic, git rebase master。会得到T3为M1, M3&#39;, T1, T2, T3。对于我们的情况是不对的（我们需要T1, T2, T3, M1, M2, M3)。但是逻辑上是正确的，因为你的base变了，会认为是新的T1&#39;，T2&#39;，T3&#39;。</li>
 </ul>
 
-<h2 id="toc_2">At runtime</h2>
 
-<ul>
-<li>initialize() when the engine context is constructed</li>
-<li>enqueue() at inference time</li>
-<li>terminate() when the engine context is destroyed</li>
-</ul>
+    
 
-<h2 id="toc_3">For serialization</h2>
+      </div>
 
-<ul>
-<li>getSerializationSize()</li>
-<li>serialize()</li>
-</ul>
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="20180212_git_gitignore.html" 
+          title="Previous Post: Git 修改.gitignore不起作用">&laquo; Git 修改.gitignore不起作用</a>
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="20180125_CUDA_Warp_Level_Primitives.html" 
+          title="Next Post: 使用 CUDA 的 warp-level 原语">使用 CUDA 的 warp-level 原语 &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
 
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2018/1/2</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='trt.html'>TensorRT</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
+          
 
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-              
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
 
 
-			<div class="row">
-			  <div class="large-6 columns">
-			  <p class="text-left" style="padding-top:25px;">
-			   
-			  </p>
-			  </div>
-			  <div class="large-6 columns">
-			<p class="text-right" style="padding-top:25px;">
-			
-			</p>
-			  </div>
-			</div>
-		</div>
-	</div><!-- large 8 -->
+
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">

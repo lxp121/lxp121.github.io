@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  TensorRT - lxp121's BLOG on CUDA and DL
+  Git 修改.gitignore不起作用 - lxp121's BLOG on CUDA and DL
   
   </title>
   
@@ -98,105 +98,75 @@
        
 
  <script type="text/javascript">
-	$(function(){
-		$('#menu_item_index').addClass('is_active');
-	});
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
 </script>
 <div class="row">
-	<div class="large-8 medium-8 columns">
-		<div class="markdown-body home-categories">
-		
-			<div class="article">
-                <a class="clearlink" href="20180201_TRT_Plugin_API.html">
-                
-                  <h1>TensorRT Plugin APIs 介绍（草稿）</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>TensorRT 中一个非常重要的特性是对于Plugin的支持。目前来说，标准Caffe中的CNN相关神经网络层已经完全支持。但是有很多改动版本的Caffe里面新添加的网络层是不支持的。例如SSD网络里面的priorbox, flatten, permute, detecion_out等。这些网络层在tensorRT里面可以使用Plugin的方式来支持。<br/>
-因为整体上说，tensorRT的优化主要针对CBR (convolution-bias-relu)的合并，卷积的优化计算，低精度（int8，fp16）也主要是针对卷积层进行的。因此少量的plugin不会对性能产生较大影响。<br/>
-但是对于YOLOv2这个网络，使用了目前tensorRT里面还不直接支持的PReLU, 如果把这个层使用plugin来实现，会出现CBR过程被打断，一些优化会受到影响，整体性能提高幅度可能不大。</p>
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Git 修改.gitignore不起作用</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2018/2/12</span>
 
-<p>本文先简要介绍一下定义一个plugin需要重载的IPlugin里面的函数。</p>
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Git.html'>Git</a></span>
+           
+         
+          <span class="comments">
+            
 
-<p>总体上来说，TensorRT运行分为若干个步骤：</p>
+            
+          </span>
 
-<ol>
-<li>创建网络(create network)，这一步可以是通过caffe 的parser，也就是以caffe的prototxt和caffemodel作为输入。nvCafferParser 回去分析这个网络结构，并且解析出其中各个网络层，如果是tensorRT已经支持的网络层，则会调用相应的tensorRT的API来添加到tensorRT的network中。如果是没有的网络层，但是已经在PluginFactory工厂里面定义了（通过isPlugin(layerName)来判断），则会标记为plugin添加到network中。</li>
-<li>创建TensorRT引擎(create TensorRT engine)，这一步是tensorRT回去根据配置生成优化engine。主要的优化项目包括：合并网络层（例如CBR的合并，多个相同大小的CBR进行进一步合并），消除多余的网络层（例如concat层），根据提供的最大Batch数(maxium batch size)，workspace来选择相应的算法和CUDA实现(kernel)，预分配中间变量、输入输出buffer等。</li>
-<li>运行时（runtime), 在这个阶段，</li>
-</ol>
+        </div>
+      </div><!-- article -->
 
-<h2 id="toc_0">When creating the network (from parser or API)</h2>
+      <div class="article-content">
+      <p>.gitignore 只能忽略那些没有被track的文件，如果这些文件以及在版本管理里面了（通过git add)，则.gitignore是无效的。办法是删除现在的track状态（改变为未track），从新提交：</p>
 
-<ul>
-<li>getNbOutputs()</li>
-<li>getOutputDimensions()</li>
-</ul>
-
-<h2 id="toc_1">By the builder</h2>
-
-<ul>
-<li>configure()</li>
-<li>getWorkSpaceSize()</li>
-</ul>
-
-<h2 id="toc_2">At runtime</h2>
-
-<ul>
-<li>initialize() when the engine context is constructed</li>
-<li>enqueue() at inference time</li>
-<li>terminate() when the engine context is destroyed</li>
-</ul>
-
-<h2 id="toc_3">For serialization</h2>
-
-<ul>
-<li>getSerializationSize()</li>
-<li>serialize()</li>
-</ul>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2018/1/2</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='trt.html'>TensorRT</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-              
+<pre><code class="language-bash">git rm -r --cached .
+git add .
+</code></pre>
 
 
-			<div class="row">
-			  <div class="large-6 columns">
-			  <p class="text-left" style="padding-top:25px;">
-			   
-			  </p>
-			  </div>
-			  <div class="large-6 columns">
-			<p class="text-right" style="padding-top:25px;">
-			
-			</p>
-			  </div>
-			</div>
-		</div>
-	</div><!-- large 8 -->
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="20180212_git_move_commits_to_new_branch.html" 
+          title="Next Post: Git 将最近改动移到新的分支(branch)上">Git 将最近改动移到新的分支(branch)上 &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">
