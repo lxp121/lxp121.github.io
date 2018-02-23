@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  TensorRT Plugin APIs 介绍（草稿） - lxp121's BLOG on CUDA and DL
+  RNNs with equations - lxp121's BLOG on CUDA and DL
   
   </title>
   
@@ -107,14 +107,14 @@
       <div class="markdown-body article-wrap">
        <div class="article">
           
-          <h1>TensorRT Plugin APIs 介绍（草稿）</h1>
+          <h1>RNNs with equations</h1>
      
         <div class="read-more clearfix">
-          <span class="date">2018/1/2</span>
+          <span class="date">2017/11/21</span>
 
           <span>posted in&nbsp;</span> 
           
-              <span class="posted-in"><a href='trt.html'>TensorRT</a></span>
+              <span class="posted-in"><a href='dl.html'>Deep Learning</a></span>
            
          
           <span class="comments">
@@ -127,48 +127,51 @@
       </div><!-- article -->
 
       <div class="article-content">
-      <p>TensorRT 中一个非常重要的特性是对于Plugin的支持。目前来说，标准Caffe中的CNN相关神经网络层已经完全支持。但是有很多改动版本的Caffe里面新添加的网络层是不支持的。例如SSD网络里面的priorbox, flatten, permute, detecion_out等。这些网络层在tensorRT里面可以使用Plugin的方式来支持。<br/>
-因为整体上说，tensorRT的优化主要针对CBR (convolution-bias-relu)的合并，卷积的优化计算，低精度（int8，fp16）也主要是针对卷积层进行的。因此少量的plugin不会对性能产生较大影响。<br/>
-但是对于YOLOv2这个网络，使用了目前tensorRT里面还不直接支持的PReLU, 如果把这个层使用plugin来实现，会出现CBR过程被打断，一些优化会受到影响，整体性能提高幅度可能不大。</p>
+      <p>实际上使用公式来理解RNN更加简单，例如LSTM实际上就是求解了三个门i (input), o(output), f(forget), 三个门就是三个全连接层+激活层。而所谓的cell，就是计算输入的信息（本时刻，和上个时刻），至于这些信息是否保留，是两个门forget gate 和input gate来保证的。</p>
 
-<p>本文先简要介绍一下定义一个plugin需要重载的IPlugin里面的函数。</p>
-
-<p>总体上来说，TensorRT运行分为若干个步骤：</p>
-
-<ol>
-<li>创建网络(create network)，这一步可以是通过caffe 的parser，也就是以caffe的prototxt和caffemodel作为输入。nvCafferParser 回去分析这个网络结构，并且解析出其中各个网络层，如果是tensorRT已经支持的网络层，则会调用相应的tensorRT的API来添加到tensorRT的network中。如果是没有的网络层，但是已经在PluginFactory工厂里面定义了（通过isPlugin(layerName)来判断），则会标记为plugin添加到network中。</li>
-<li>创建TensorRT引擎(create TensorRT engine)，这一步是tensorRT回去根据配置生成优化engine。主要的优化项目包括：合并网络层（例如CBR的合并，多个相同大小的CBR进行进一步合并），消除多余的网络层（例如concat层），根据提供的最大Batch数(maxium batch size)，workspace来选择相应的算法和CUDA实现(kernel)，预分配中间变量、输入输出buffer等。</li>
-<li>运行时（runtime), 在这个阶段，</li>
-</ol>
-
-<h2 id="toc_0">When creating the network (from parser or API)</h2>
+<h2 id="toc_0">LSTM</h2>
 
 <ul>
-<li>getNbOutputs()</li>
-<li>getOutputDimensions()</li>
+<li>f: forget gate, 遗忘门，上一时刻的\(C_{t-1}\)的权重</li>
+<li>i: input gate, 输入门，当前计算的\(C_{t}\)的权重</li>
+<li>o: output gate, 输出门，当前计算的\(C_{t}\)到hidden output的权重。</li>
 </ul>
 
-<h2 id="toc_1">By the builder</h2>
+<p>\[ f_t = \sigma(W_f\cdot [h_{t-1},x_t]^T+b_f)\]<br/>
+\[ i_t = \sigma(W_i\cdot [h_{t-1},x_t]^T+b_i)\]<br/>
+\[ \tilde{C}_t = \tanh (W_c\cdot [h_{t-1},x_t]^T+b_c)\]<br/>
+\[ o_t = \sigma(W_o\cdot [h_{t-1},x_t]^T+b_o)\]<br/>
+\[ C_t = f_t C_{t-1} + i_t  \tilde{C}_t \]<br/>
+\[ h_t = o_t \tanh(C_t) \]</p>
 
-<ul>
-<li>configure()</li>
-<li>getWorkSpaceSize()</li>
-</ul>
+<h2 id="toc_1">LSTM with peephole</h2>
 
-<h2 id="toc_2">At runtime</h2>
+<p>和LSTM相比，在计算各个gate的时候，顺便参考了一下\(C_{t-1}\)(input, forget)或者\(C_t\)(output)</p>
 
-<ul>
-<li>initialize() when the engine context is constructed</li>
-<li>enqueue() at inference time</li>
-<li>terminate() when the engine context is destroyed</li>
-</ul>
+<p>\[ f_t = \sigma(W_f\cdot [C_{t-1},h_{t-1},x_t]^T+b_f)\]<br/>
+\[ i_t = \sigma(W_i\cdot [C_{t-1},h_{t-1},x_t]^T+b_i)\]<br/>
+\[ \tilde{C}_t = \tanh (W_c\cdot [h_{t-1},x_t]^T+b_c)\]<br/>
+\[ C_t = f_t C_{t-1} + i_t  \tilde{C}_t \]<br/>
+\[ o_t = \sigma(W_o\cdot [C_t,h_{t-1},x_t]^T+b_o)\]<br/>
+\[ h_t = o_t \tanh(C_t) \]</p>
 
-<h2 id="toc_3">For serialization</h2>
+<h2 id="toc_2">LSTMP</h2>
 
-<ul>
-<li>getSerializationSize()</li>
-<li>serialize()</li>
-</ul>
+<p>和LSTM相比，在计算最终的hidden output的时候，多添加了一个\(W_r\)<br/>
+\[ f_t = \sigma(W_f\cdot [h_{t-1},x_t]^T+b_f)\]<br/>
+\[ i_t = \sigma(W_i\cdot [h_{t-1},x_t]^T+b_i)\]<br/>
+\[ \tilde{C}_t = \tanh (W_c\cdot [h_{t-1},x_t]^T+b_c)\]<br/>
+\[ o_t = \sigma(W_o\cdot [h_{t-1},x_t]^T+b_o)\]<br/>
+\[ C_t = f_t C_{t-1} + i_t  \tilde{C}_t \]<br/>
+\[ h_t = W_r (o_t \tanh(C_t)) \]</p>
+
+<h2 id="toc_3">GRU</h2>
+
+<p>GRU相比LSTM更加简单，它只有两个门(z,r), 并且不需要单独的cell单元来保存状态。<br/>
+\[ z_t = \sigma(W_z\cdot [h_{t-1}, x_t]^T)\]<br/>
+\[ r_t = \sigma(W_r\cdot [h_{t-1}, x_t]^T)\]<br/>
+\[ \tilde{h}_t = \tanh(W\cdot [r_t\times h_{t-1}, x_t]^T)\]<br/>
+\[ h_t = (1-z_t)h_{t-1} + z_t \tilde{h}_t\]</p>
 
 
     
@@ -179,16 +182,13 @@
         <div class="large-6 columns">
         <p class="text-left" style="padding:15px 0px;">
       
-          <a href="20180116_DL_Tuning_Reprint.html" 
-          title="Previous Post: 深度学习中的优化调参细节（转帖）">&laquo; 深度学习中的优化调参细节（转帖）</a>
+          <a href="20180201_TRT_Plugin_API.html" 
+          title="Previous Post: TensorRT Plugin APIs 介绍（草稿）">&laquo; TensorRT Plugin APIs 介绍（草稿）</a>
       
         </p>
         </div>
         <div class="large-6 columns">
       <p class="text-right" style="padding:15px 0px;">
-      
-          <a  href="15112406136583.html" 
-          title="Next Post: RNNs with equations">RNNs with equations &raquo;</a>
       
       </p>
         </div>
