@@ -4,13 +4,38 @@
   <title><![CDATA[lxp121's BLOG on CUDA and DL]]></title>
   <link href="china.xipengli.com/atom.xml" rel="self"/>
   <link href="china.xipengli.com/"/>
-  <updated>2018-02-12T16:17:11+08:00</updated>
+  <updated>2018-02-23T11:32:46+08:00</updated>
   <id>china.xipengli.com/</id>
   <author>
     <name><![CDATA[]]></name>
     
   </author>
   <generator uri="http://www.mweb.im/">MWeb</generator>
+  
+  <entry>
+    <title type="html"><![CDATA[TensorFlow-TensorRT 的使用及其限制（草稿）]]></title>
+    <link href="china.xipengli.com/15231593087199.html"/>
+    <updated>2018-04-08T11:48:28+08:00</updated>
+    <id>china.xipengli.com/15231593087199.html</id>
+    <content type="html"><![CDATA[
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[GPU代码的向后兼容问题]]></title>
+    <link href="china.xipengli.com/15203065717420.html"/>
+    <updated>2018-03-06T11:22:51+08:00</updated>
+    <id>china.xipengli.com/15203065717420.html</id>
+    <content type="html"><![CDATA[
+<p>我们在开发GPU软件的时候，会遇到一个不同版本GPU支持的问题，GPU每一代都在不断的更新，新功能不断涌现，比如从Pascal GP102开始的INT8支持。但是我们很难为每一代产品去开发专门的kernel。这就存在一个代码向后兼容的问题。</p>
+
+<p>在开始谈这个问题的时候我们来谈一些一个代码，或者准确说一个kernel被编译到可以在GPU上运行的。</p>
+
+<h2 id="toc_0">nvcc 和 -gencode</h2>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Git 修改.gitignore不起作用]]></title>
@@ -179,10 +204,10 @@ git rebase master
 
 <ul>
 <li>在SIMD架构中，每个指令在不同的数据上并行的进行相同的操作。SIMD通常采用向量寄存器和向量执行单元来实现。而vector执行是通过一个标量的向量来实现的。简言之，一个线程调度，多个向量寄存器和执行单元上并行完成相同指令。</li>
-<li>而SIMT架构中，并不只是使用单一的线程，并且数据也不要求采用向量存储方式。多个线程会发起普通的指令（而非向量指令）在任意数据上执行。我们可以想象一下GPU的执行时候，可以根据每个thread的线程来计算需要操作的数据位置。实际上，可以再SIMT的架构中进一步实现SIMD的子架构，以Pascal架构中支持的INT8计算模式为例。该模式可以非常高效地提高深度神经网络的计算。在INT8的计算中，要求被计算的4个数据相互邻近（每个8bit），4个指令在一个GPU线程上执行。而这个线程是SIMT中的一个线程。</li>
+<li>而SIMT架构中，并不只是使用单一的线程，并且数据也不要求采用向量存储方式。多个线程会发起普通的指令（而非向量指令）在任意数据上执行。我们可以想象一下GPU的执行时候，可以根据每个thread的线程来计算需要操作的数据位置。实际上，可以在SIMT的架构中进一步实现SIMD的子架构，以Pascal架构中支持的INT8计算模式为例。该模式可以非常高效地提高深度神经网络的计算。在INT8的计算中，要求被计算的4个数据相互邻近（每个8bit），4个指令在一个GPU线程上执行。而这个线程是SIMT中的一个线程。</li>
 </ul>
 
-<p>在NVIDIA的GPU上，32个并行线程（相邻线程）被组成一个warp，每一个线程可以访问它自己的寄存器，从不同地址（可以不相邻）读写数据。并且，这些线程是可以支持分歧的控制流路径（divergent control flow paths)。本文中，我们重点放在使用Warp级别原语的使用。</p>
+<p>在NVIDIA的GPU上，32个并行线程（相邻线程）被组成一个warp，每一个线程可以访问它自己的寄存器，从不同显存地址（可以不相邻）读写数据。并且，这些线程是可以支持分歧的控制流路径（divergent control flow paths)。本文中，我们重点放在使用Warp级别原语的使用。</p>
 
 <p><em><a href="#code1">代码1</a></em> 是一个warp-level 原语的例子。我们使用了一个<strong>__shfl_down_sync()</strong> 来实现一个tree-reduction方式来计算一个warp中线程val值得和。该代码执行完之后，warp中的第一个线程中的val值就等于最终的和。</p>
 
@@ -197,7 +222,7 @@ for (int offset = 16; offset &gt; 0; offset /= 2)
 <img src="media/15168532667210/15171231191469.png" alt="使用__shlf_down_sync()来实现warp级别的并行reduction"/><br/>
 <strong><div align = center><span id="image1">图片1：使用__shlf_down_sync()来实现warp级别的并行reduction</span></div></strong></p>
 
-<p>一个warp中包含32通道（lane），每一个线程占用一个通道。对于处于 X 通道的线程，<strong>__shlf_down_sync(FULL_MASK, val, offset)</strong> 来获得在同一个warp中的第 <strong>X+offset</strong> 航道的val值。这一数据交换在regitster中进行的，因此其效率高于共享内存。使用共享内存需要一次读，一次写，并且需要一个额外的寄存器来保存这些地址。</p>
+<p>一个warp中包含32通道（lane），每一个线程占用一个通道。对于处于 X 通道的线程，<strong>__shlf_down_sync(FULL_MASK, val, offset)</strong> 来获得在同一个warp中的第 <strong>X+offset</strong> 通道的val值。这一数据交换在regitster中进行的，因此其效率高于共享内存。使用共享内存需要一次读，一次写，并且需要一个额外的寄存器来保存这些地址。</p>
 
 <p>CUDA 9中包含了三类warp级别原语：</p>
 
@@ -219,9 +244,12 @@ for (int offset = 16; offset &gt; 0; offset /= 2)
 
 <h2 id="toc_1">同步地数据交换（Synchronized data exchange）</h2>
 
-<p>每一个”同步地数据交换“原语都会在warp中的一组线程（不一定是所有线程）上执行一个聚合操作（collective operation)。</p>
+<p>每一个”同步地数据交换“原语都会在warp中的一组线程（不一定是所有线程）上执行一个聚合操作（collective operation)。<em><a href="#code2">代码2</a></em> 展示了其中的三个操作。每个线程可以调用 <strong>__shfl_sync()</strong> 或者 <strong>__shfl_down_sync()</strong> 来接收同一个warp中其他线程的数据。每个线程也可以调用<strong>__ballot_sync()</strong>来检验一个mask中的所有活动线程是否满足predicate的条件。该原语返回一个整形数，该整形数的第N位(bit)为真，当且仅当：</p>
 
-<p>Each of the “synchronized data exchange” primitives perform a collective operation among a set of threads in a warp. For example, Listing 2 shows three of these. Each thread that calls __shfl_sync() or __shfl_down_sync() receives data from a thread in the same warp, and each thread that calls __ballot_sync() receives a bit mask representing all the threads in the warp that pass a true value for the predicate argument.</p>
+<ul>
+<li>predicate的检测结果为真；</li>
+<li>第N个线程为active。</li>
+</ul>
 
 <p><strong><div align = lift><span id="code2">代码2: Synchronized data exchange warp-level primitives</span></div></strong> </p>
 
@@ -231,9 +259,9 @@ int __shfl_down_sync(unsigned mask, int var, unsigned detla,
 int __ballot_sync(unsigned mask, int predicate);
 </code></pre>
 
-<p>The set of threads that participates in invoking each primitive is specified using a 32-bit mask, which is the first argument of these primitives. All the participating threads must be synchronized for the collective operation to work correctly. Therefore, these primitives first synchronize the threads if they are not already synchronized.</p>
+<p>通常使用一个32位的掩码（mask）来表示参与原语的线程。每一个参与的线程在执行相应操作之前必须同步，以保证其得到正确的结果。例如<strong>__shfl_sync</strong>实际是先同步所有的数据，再执行shfl的操作。因此<strong>__shfl_sync</strong>实际上可以保证一个同步。这里是一个很重要的变化：<strong>在CUDA9.0 之前，__shfl这个操作实际上是不保证一定同步的，但是在绝大多数的应用中，并没有出现不同步的情况。在CUDA9.0 中，不再使用__shfl等非同步原语。如果你有CUDA9.0之前的代码，使用了__shfl原语，请将其更换为__shfl_sync。</strong></p>
 
-<p>A frequently asked question is “what should I use for the mask argument?”. You can consider the mask to mean the set of threads in the warp that should participate in the collective operation. This set of threads is determined by the program logic, and can usually be computed by some branch condition earlier in the program flow. Take the reduction code in Listing 1 as an example. Assume we want to compute the sum of all the elements of an array input[], whose size NUM_ELEMENTS is less than the number of threads in the thread block. We can use the method in Listing 3.</p>
+<p>一个常被问到的问题是：应该使用什么样的掩码参数？我们可以简单的理解为mask就是一组需要参与聚合操作的线程的id。所以，这个线程组的组成实际是程序逻辑决定的。我们还是以<em><a href="#code1">代码1</a></em> 这个reduction代码为例子。假设我们希望计算input[]数组所有元素的和，并且这个数组长度NUM_ELEMENTS是小于这个block里面的线程数目的。我们可以使用<em><a href="#code3">代码3</a></em>这个代码来实现。 </p>
 
 <p><strong><div align = lift><span id="code3">代码3: </span></div></strong> </p>
 
@@ -246,9 +274,9 @@ if (threadIdx.x &lt; NUM_ELEMENTS) {
 }
 </code></pre>
 
-<p>The code uses the condition thread.idx.x &lt; NUM_ELEMENTS to determine whether or not a thread will participate in the reduction.  __ballot_sync() is used to compute the membership mask for the __shfl_down_sync() operation. __ballot_sync() itself uses FULL_MASK (0xffffffff for 32 threads) because we assume all threads will execute it.</p>
+<p>这个代码首先使用 <em>threadIdx.x &lt; NUM_ELEMENTS</em> 来确认一个线程是否参与这个reduction过程。其中<em>__ballot_sync()</em> 是用来计算<em>__shlf_down_sync()</em>中使用的掩码的。而<em>__ballot_sync()</em>本身使用FULL_MASK （0xffffffff），表示所有的32个线程都需要参与投票。</p>
 
-<p>On Volta and later GPU architectures, the data exchange primitives can be used in thread-divergent branches: branches where some threads in the warp take a different path than the others. Listing 4 shows an example where all the threads in a warp get the value of val from the thread at lane 0. The even- and odd-numbered threads take different branches of an if statement.</p>
+<p>在Volta或者更晚一些的架构中，数据交换原语可以被用于线程分歧分支（thread-divergent branchs）中-- 一个线程可以执行和warp中其他线程不同的路径。<em><a href="#code4">代码4</a></em> 展示了这样一个例子，一个warp中所有线程获得第0通道的val值，但是奇数和偶数的线程执行一个if语句中的不同分支。 </p>
 
 <p><strong><div align = lift><span id="code4">代码4: </span></div></strong> </p>
 
@@ -257,12 +285,12 @@ if (threadIdx.x &lt; NUM_ELEMENTS) {
 …
 }
 else {
-val += __shfl_sync(FULL_MASK, val, 0);
+    val += __shfl_sync(FULL_MASK, val, 0);
 …
 }
 </code></pre>
 
-<p>On the latest Volta (and future) GPUs, you can run library functions that use warp synchronous primitives without worrying whether the function is called in a thread-divergent branch.</p>
+<p>在最新的Volta（或者未来的）GPU上，你可以使用warp同步原语，而不需要去考虑这个函数是执行在哪个线程分歧分支上。</p>
 
 <h2 id="toc_2">Active Mask Query</h2>
 
