@@ -173,6 +173,17 @@
 \[ \tilde{h}_t = \tanh(W\cdot [r_t\times h_{t-1}, x_t]^T)\]<br/>
 \[ h_t = (1-z_t)h_{t-1} + z_t \tilde{h}_t\]</p>
 
+<h2 id="toc_4">关于Bias在不同框架中的处理</h2>
+
+<p>不同框架中，对于b有不同的处理，在tf和cudnn中，认为每个门的计算是分开的，因此有两个bias，即，<br/>
+\[ f_t = \sigma (W_{f1} h_{t-1} + b_{f1} + W_{f1} x_t + b_{f2}) \]<br/>
+因此对于tf/cudnn，weight的数目是：</p>
+
+<pre><code class="language-cpp">cnt_w = 4* ( (intput_dim + hidden_dim) * hidden_dim ) 
+        + (nLayeer - 1) * 4 * ( 2 * hidden_dim * hidden_dim);
+cnt_b = 8 * hidden_dim * nLayer     
+</code></pre>
+
 
     
 
@@ -273,7 +284,7 @@
 		  
 		      
 			      <li class="post">
-			        <a href="15203065717420.html">GPU代码的向后兼容问题</a>
+			        <a href="15203065717420.html">GPU代码的向后兼容问题（草稿）</a>
 			      </li>
 		     
 		  

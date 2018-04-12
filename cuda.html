@@ -109,7 +109,7 @@
 			<div class="article">
                 <a class="clearlink" href="15203065717420.html">
                 
-                  <h1>GPU代码的向后兼容问题</h1>
+                  <h1>GPU代码的向后兼容问题（草稿）</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
@@ -178,10 +178,10 @@ for (int offset = 16; offset &gt; 0; offset /= 2)
 </code></pre>
 
 <p>这个计算可以用下面的图来说明：<br/>
-<img src="media/15168532667210/15171231191469.png" alt="使用__shlf_down_sync()来实现warp级别的并行reduction"/><br/>
-<strong><div align = center><span id="image1">图片1：使用__shlf_down_sync()来实现warp级别的并行reduction</span></div></strong></p>
+<img src="media/15168532667210/15171231191469.png" alt="使用__shfl_down_sync()来实现warp级别的并行reduction"/><br/>
+<strong><div align = center><span id="image1">图片1：使用__shfl_down_sync()来实现warp级别的并行reduction</span></div></strong></p>
 
-<p>一个warp中包含32通道（lane），每一个线程占用一个通道。对于处于 X 通道的线程，<strong>__shlf_down_sync(FULL_MASK, val, offset)</strong> 来获得在同一个warp中的第 <strong>X+offset</strong> 通道的val值。这一数据交换在regitster中进行的，因此其效率高于共享内存。使用共享内存需要一次读，一次写，并且需要一个额外的寄存器来保存这些地址。</p>
+<p>一个warp中包含32通道（lane），每一个线程占用一个通道。对于处于 X 通道的线程，<strong>__shfl_down_sync(FULL_MASK, val, offset)</strong> 来获得在同一个warp中的第 <strong>X+offset</strong> 通道的val值。这一数据交换在regitster中进行的，因此其效率高于共享内存。使用共享内存需要一次读，一次写，并且需要一个额外的寄存器来保存这些地址。</p>
 
 <p>CUDA 9中包含了三类warp级别原语：</p>
 
@@ -233,7 +233,7 @@ if (threadIdx.x &lt; NUM_ELEMENTS) {
 }
 </code></pre>
 
-<p>这个代码首先使用 <em>threadIdx.x &lt; NUM_ELEMENTS</em> 来确认一个线程是否参与这个reduction过程。其中<em>__ballot_sync()</em> 是用来计算<em>__shlf_down_sync()</em>中使用的掩码的。而<em>__ballot_sync()</em>本身使用FULL_MASK （0xffffffff），表示所有的32个线程都需要参与投票。</p>
+<p>这个代码首先使用 <em>threadIdx.x &lt; NUM_ELEMENTS</em> 来确认一个线程是否参与这个reduction过程。其中<em>__ballot_sync()</em> 是用来计算<em>__shfl_down_sync()</em>中使用的掩码的。而<em>__ballot_sync()</em>本身使用FULL_MASK （0xffffffff），表示所有的32个线程都需要参与投票。</p>
 
 <p>在Volta或者更晚一些的架构中，数据交换原语可以被用于线程分歧分支（thread-divergent branchs）中-- 一个线程可以执行和warp中其他线程不同的路径。<em><a href="#code4">代码4</a></em> 展示了这样一个例子，一个warp中所有线程获得第0通道的val值，但是奇数和偶数的线程执行一个if语句中的不同分支。 </p>
 
@@ -251,7 +251,11 @@ else {
 
 <p>在最新的Volta（或者未来的）GPU上，你可以使用warp同步原语，而不需要去考虑这个函数是执行在哪个线程分歧分支上。</p>
 
-<h2 id="toc_2">Active Mask Query</h2>
+<h2 id="toc_2">查询活跃线程的掩码（Active Mask Query）</h2>
+
+<p><strong>__active_mask()</strong> 返回一个32位无符号整形掩码（mask），该掩码的每一位表示了当前warp中线程的活动（active）情况。换句话说，该掩码表示了在同一个warp中也在执行<strong>__active_mask()</strong>的线程。该原语对于opportunistic warp-level programming 技术（后续会详细解释）、debugging和理解程序行为非常有用。</p>
+
+<p>但是，正确的使用<strong>__active_mask()</strong>是非常重要的。<em><a href="#code5">代码5</a></em> 是一个<strong>错误的</strong>使用的例子。该代码试图进行<em><a href="#code4">代码4</a></em> 中的求和reduction，但是它不使用 <strong>__active_mask()</strong> </p>
 
 <p>__activemask() returns a 32-bit unsigned int mask of all currently active threads in the calling warp. In other words, it shows the calling thread which threads in its warp are also executing the same __activemask(). This is useful for the :opportunistic warp-level programming” technique we explain later, as well as for debugging and understanding program behavior.</p>
 
@@ -713,7 +717,7 @@ __global__ void sum(const float* array, unsigned int N, volatile float* result)
 		  
 		      
 			      <li class="post">
-			        <a href="15203065717420.html">GPU代码的向后兼容问题</a>
+			        <a href="15203065717420.html">GPU代码的向后兼容问题（草稿）</a>
 			      </li>
 		     
 		  
