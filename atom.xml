@@ -4,13 +4,65 @@
   <title><![CDATA[lxp121's BLOG on CUDA and DL]]></title>
   <link href="china.xipengli.com/atom.xml" rel="self"/>
   <link href="china.xipengli.com/"/>
-  <updated>2018-04-08T11:49:47+08:00</updated>
+  <updated>2018-04-12T10:40:39+08:00</updated>
   <id>china.xipengli.com/</id>
   <author>
     <name><![CDATA[]]></name>
     
   </author>
   <generator uri="http://www.mweb.im/">MWeb</generator>
+  
+  <entry>
+    <title type="html"><![CDATA[关于TRT里面双向RNN参数的设置]]></title>
+    <link href="china.xipengli.com/15262740803283.html"/>
+    <updated>2018-05-14T13:01:20+08:00</updated>
+    <id>china.xipengli.com/15262740803283.html</id>
+    <content type="html"><![CDATA[
+<p>如果是用双向RNN，则TRT/cuDNN中引入的层数是实际层数的两倍。</p>
+
+<p><img src="media/15262740803283/15262753025215.jpg" alt=""/></p>
+
+<p>其保存方式是：[layerNum, dir, gates]<br/>
+代码上来看就是</p>
+
+<pre><code class="language-cpp">const int dirMult = (direction_ == RNNDirection:kUNIDIRECTION) ? 1 : 2;
+int wOffset = 0;
+int bOffset = 0;
+
+// Iterate each RNN layer
+for (int li = 0; li &lt; layerNum; ++li) {
+    const int wCols = (li==0) ? inputSize : (hiddenSize * dirMult);
+    
+    // Uni or bi-dir layers in each RNN layer
+    for (int di = 0; di &lt; dirMult; ++di) {
+        const int v2Layer = (li * dirMult) + di;
+        
+        // W and R params
+        for (int i = 0; i&lt; 2; ++i){
+            const bool isW = (i==0);
+            const int wNum = (isW ? wCols : hiddenSize_) * hiddenSize;
+            const int bNum = hiddenSize;
+            
+            for (RNNGateType g : gates) {
+                const Weights w = getWeightAtOffset(imW, wOffset, wNum);
+                const GateParams wp{v2Layer, g, isW, w};
+                wParams.push_back(wp);
+                
+                const Weights b = getWeightAtOffset(imB, bOffset, bNum);
+                const GateParams bp{v2Layer, g, isW, b};
+                bParams.push_back(bp);
+            }
+            
+            wOffset += wNum;
+            bOffset += bNum;
+        }
+    }
+}
+                
+</code></pre>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[TensorFlow-TensorRT 的使用及其限制（草稿）]]></title>

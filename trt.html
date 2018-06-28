@@ -107,6 +107,80 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
+                <a class="clearlink" href="15262740803283.html">
+                
+                  <h1>关于TRT里面双向RNN参数的设置</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p>如果是用双向RNN，则TRT/cuDNN中引入的层数是实际层数的两倍。</p>
+
+<p><img src="media/15262740803283/15262753025215.jpg" alt=""/></p>
+
+<p>其保存方式是：[layerNum, dir, gates]<br/>
+代码上来看就是</p>
+
+<pre><code class="language-cpp">const int dirMult = (direction_ == RNNDirection:kUNIDIRECTION) ? 1 : 2;
+int wOffset = 0;
+int bOffset = 0;
+
+// Iterate each RNN layer
+for (int li = 0; li &lt; layerNum; ++li) {
+    const int wCols = (li==0) ? inputSize : (hiddenSize * dirMult);
+    
+    // Uni or bi-dir layers in each RNN layer
+    for (int di = 0; di &lt; dirMult; ++di) {
+        const int v2Layer = (li * dirMult) + di;
+        
+        // W and R params
+        for (int i = 0; i&lt; 2; ++i){
+            const bool isW = (i==0);
+            const int wNum = (isW ? wCols : hiddenSize_) * hiddenSize;
+            const int bNum = hiddenSize;
+            
+            for (RNNGateType g : gates) {
+                const Weights w = getWeightAtOffset(imW, wOffset, wNum);
+                const GateParams wp{v2Layer, g, isW, w};
+                wParams.push_back(wp);
+                
+                const Weights b = getWeightAtOffset(imB, bOffset, bNum);
+                const GateParams bp{v2Layer, g, isW, b};
+                bParams.push_back(bp);
+            }
+            
+            wOffset += wNum;
+            bOffset += bNum;
+        }
+    }
+}
+                
+</code></pre>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2018/5/14</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='trt.html'>TensorRT</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
                 <a class="clearlink" href="20180201_TRT_Plugin_API.html">
                 
                   <h1>TensorRT Plugin APIs 介绍（草稿）</h1>
@@ -257,6 +331,12 @@
 	      
 		      
 			      <li class="post">
+			        <a href="15262740803283.html">关于TRT里面双向RNN参数的设置</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15231593087199.html">TensorFlow-TensorRT 的使用及其限制（草稿）</a>
 			      </li>
 		     
@@ -280,10 +360,6 @@
 		     
 		  
 		      
-			      <li class="post">
-			        <a href="20180125_CUDA_Warp_Level_Primitives.html">使用 CUDA 的 warp-level 原语</a>
-			      </li>
-		     
 		  
 		      
 		  
