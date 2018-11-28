@@ -70,10 +70,13 @@
 
 <aside class="left-off-canvas-menu">
       <ul class="off-canvas-list">
-       
-       <li><a href="index.html">HOME</a></li>
-    <li><a href="archives.html">Archives</a></li>
-    <li><a href="about.html">ABOUT</a></li>
+        
+        <li><a target="_self" href="index.html">Home</a></li>
+        
+        <li><a target="_self" href="archives.html">Archives</a></li>
+        
+        <li><a target="_self" href="about.html">About</a></li>
+        
 
     <li><label>Categories</label></li>
 
@@ -179,7 +182,7 @@
 \[ f_t = \sigma (W_{f1} h_{t-1} + b_{f1} + W_{f1} x_t + b_{f2}) \]<br/>
 因此对于tf/cudnn，weight的数目是：</p>
 
-<pre><code class="language-cpp">cnt_w = 4* ( (intput_dim + hidden_dim) * hidden_dim ) 
+<pre class="line-numbers"><code class="language-cpp">cnt_w = 4* ( (intput_dim + hidden_dim) * hidden_dim ) 
         + (nLayeer - 1) * 4 * ( 2 * hidden_dim * hidden_dim);
 cnt_b = 8 * hidden_dim * nLayer     
 </code></pre>
@@ -278,7 +281,7 @@ cnt_b = 8 * hidden_dim * nLayer
 	      
 		      
 			      <li class="post">
-			        <a href="15262740803283.html">关于TRT里面双向RNN参数的设置</a>
+			        <a href="15262740803283.html">关于TRT里面双向RNN参数的设置 [待更新]</a>
 			      </li>
 		     
 		  
@@ -359,7 +362,7 @@ Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
      
     </script>
 
-    <script src="asset/chart/all-min.js"></script><script type="text/javascript">$(function(){    var mwebii=0;    var mwebChartEleId = 'mweb-chart-ele-';    $('pre>code').each(function(){        mwebii++;        var eleiid = mwebChartEleId+mwebii;        if($(this).hasClass('language-sequence')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = Diagram.parse($(this).text());            diagram.drawSVG(eleiid,{theme: 'simple'});        }else if($(this).hasClass('language-flow')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = flowchart.parse($(this).text());            diagram.drawSVG(eleiid);        }    });});</script>
+    
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: { equationNumbers: { autoNumber: "AMS" } }});</script>
 
 

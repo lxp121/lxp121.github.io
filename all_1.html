@@ -70,10 +70,13 @@
 
 <aside class="left-off-canvas-menu">
       <ul class="off-canvas-list">
-       
-       <li><a href="index.html">HOME</a></li>
-    <li><a href="archives.html">Archives</a></li>
-    <li><a href="about.html">ABOUT</a></li>
+        
+        <li><a target="_self" href="index.html">Home</a></li>
+        
+        <li><a target="_self" href="archives.html">Archives</a></li>
+        
+        <li><a target="_self" href="about.html">About</a></li>
+        
 
     <li><label>Categories</label></li>
 
@@ -135,7 +138,7 @@
 
 <p><strong><div align = lift><span id="code1">代码1: warp-level reduction</span></div></strong> </p>
 
-<pre><code class="language-cpp">#define FULL_MASK 0xffffffff
+<pre class="line-numbers"><code class="language-cpp">#define FULL_MASK 0xffffffff
 for (int offset = 16; offset &gt; 0; offset /= 2)
     val += __shfl_down_sync(FULL_MASK, val, offset);
 </code></pre>
@@ -150,14 +153,12 @@ for (int offset = 16; offset &gt; 0; offset /= 2)
 
 <ol>
 <li>同步地数据交换（Synchronized data exchange）：在同一warp中不同thread之间交换数据：
-
 <ul>
 <li>__all_sync, __any_sync, __uni_sync, __ballot_sync</li>
 <li>__shfl_sync, __shfl_up_sync, __shfl_down_sync, __shfl_xor_sync</li>
 <li>__match_any_sync, __match_all_sync</li>
 </ul></li>
 <li>Active mask query: 返回一个32-bit的mask来表示warp中哪些thread是活动的。
-
 <ul>
 <li>__activemask</li>
 </ul></li>
@@ -175,7 +176,7 @@ for (int offset = 16; offset &gt; 0; offset /= 2)
 
 <p><strong><div align = lift><span id="code2">代码2: Synchronized data exchange warp-level primitives</span></div></strong> </p>
 
-<pre><code class="language-cpp">int __shfl_sync(unsigned mask, int val, int src_line, int width=warpSize);
+<pre class="line-numbers"><code class="language-cpp">int __shfl_sync(unsigned mask, int val, int src_line, int width=warpSize);
 int __shfl_down_sync(unsigned mask, int var, unsigned detla, 
                      int width=warpSize);
 int __ballot_sync(unsigned mask, int predicate);
@@ -187,7 +188,7 @@ int __ballot_sync(unsigned mask, int predicate);
 
 <p><strong><div align = lift><span id="code3">代码3: </span></div></strong> </p>
 
-<pre><code class="language-cpp">unsigned mask = __ballot_sync(FULL_MASK, threadIdx.x &lt; NUM_ELEMENTS);
+<pre class="line-numbers"><code class="language-cpp">unsigned mask = __ballot_sync(FULL_MASK, threadIdx.x &lt; NUM_ELEMENTS);
 if (threadIdx.x &lt; NUM_ELEMENTS) { 
     val = input[threadIdx.x]; 
     for (int offset = 16; offset &gt; 0; offset /= 2)
@@ -202,7 +203,7 @@ if (threadIdx.x &lt; NUM_ELEMENTS) {
 
 <p><strong><div align = lift><span id="code4">代码4: </span></div></strong> </p>
 
-<pre><code class="language-cpp">if (threadIdx.x % 2) {
+<pre class="line-numbers"><code class="language-cpp">if (threadIdx.x % 2) {
     val += __shfl_sync(FULL_MASK, val, 0);
 …
 }
@@ -226,7 +227,7 @@ else {
 
 <p><strong><div align = lift><span id="code5">代码5: </span></div></strong> </p>
 
-<pre><code class="language-cpp">//
+<pre class="line-numbers"><code class="language-cpp">//
 // Incorrect use of __active_mask()
 //
 if (threadIdx.x &lt; NUM_ELEMENTS) { 
@@ -242,14 +243,14 @@ if (threadIdx.x &lt; NUM_ELEMENTS) {
 
 <p>When threads in a warp need to perform more complicated communications or collective operations than what the data exchange primitives provide, you can use the __syncwarp() primitive to synchronize threads in a warp. It is similar to the __syncthreads() primitive (which synchronizes all threads in the thread block) but at finer granularity.</p>
 
-<pre><code class="language-cpp">void __syncwarp(unsigned mask=FULL_MASK);
+<pre class="line-numbers"><code class="language-cpp">void __syncwarp(unsigned mask=FULL_MASK);
 </code></pre>
 
 <p>The __syncwarp() primitive causes the executing thread to wait until all threads specified in mask have executed a __syncwarp() (with the same mask) before resuming execution. It also provides a memory fence to allow threads to communicate via memory before and after calling the primitive.</p>
 
 <p>Listing 6 shows an example of shuffling the ownership of matrix elements among threads in a warp.</p>
 
-<pre><code class="language-cpp">float val = get_value(…);
+<pre class="line-numbers"><code class="language-cpp">float val = get_value(…);
 __shared__ float smem[4][8];
  
 //   0  1  2  3  4  5  6  7 
@@ -277,7 +278,7 @@ use(val);
 
 <p>Make sure that __syncwarp() separates shared memory reads and writes to avoid race conditions. Listing 7 illustrates an incorrect use in a tree sum reduction in shared memory. There is a shared memory read followed by a shared memory write between every two __syncwarp() calls. The CUDA programming model does not guarantee that all the reads will be performed before all the writes, so there is a race condition.</p>
 
-<pre><code class="language-cpp">unsigned tid = threadIdx.x;
+<pre class="line-numbers"><code class="language-cpp">unsigned tid = threadIdx.x;
 
 // Incorrect use of __syncwarp()
 shmem[tid] += shmem[tid+16]; __syncwarp();
@@ -289,7 +290,7 @@ shmem[tid] += shmem[tid+1];  __syncwarp();
 
 <p>Listing 8 fixes the race condition by inserting extra __syncwarp() calls. The CUDA compiler may elide some of these synchronization instructions in the final generated code depending on the target architecture (e.g. on pre-Volta architectures).</p>
 
-<pre><code class="language-cpp">unsigned tid = threadIdx.x;
+<pre class="line-numbers"><code class="language-cpp">unsigned tid = threadIdx.x;
 int v = 0;
 
 v += shmem[tid+16]; __syncwarp();
@@ -312,7 +313,7 @@ shmem[tid] = v;
 
 <p>Some computations can use whatever threads happen to be executing together. We can use a technique called opportunistic warp-level programming, as the following example illustrates. (See this post on warp-aggregated atomics for more information on the algorithm, and this post for discussion of how Cooperative Groups makes the implementation much simpler.)</p>
 
-<pre><code class="language-cpp">// increment the value at ptr by 1 and return the old value
+<pre class="line-numbers"><code class="language-cpp">// increment the value at ptr by 1 and return the old value
 __device__ int atomicAggInc(int *ptr) {
     int pred;
     int mask = __match_all_sync(__activemask(), ptr, &amp;pred);
@@ -337,7 +338,7 @@ __device__ int atomicAggInc(int *ptr) {
 
 <p>For example, in the following code, let’s assume all 32 threads in a warp execute line 2 together. The if statement at line 4 causes the threads to diverge, with the odd threads calling foo() at line 5 and the even threads calling bar() at line 8.</p>
 
-<pre><code class="language-cpp">// Assuming all 32 threads in a warp execute line 1 together.
+<pre class="line-numbers"><code class="language-cpp">// Assuming all 32 threads in a warp execute line 1 together.
 assert(__ballot(1) == FULL_MASK);
 int result;
 if (thread_id % 2) {
@@ -353,18 +354,18 @@ unsigned ballot_result = __ballot(result);
 
 <p>Calling the new __syncwarp() primitive at line 10 before __ballot(), as illustrated in Listing 11, does not fix the problem either. This is again implicit warp-synchronous programming. It assumes that threads in the same warp that are once synchronized will stay synchronized until the next thread-divergent branch. Although it is often true, it is not guaranteed in the CUDA programming model.</p>
 
-<pre><code class="language-cpp">__syncwarp();
+<pre class="line-numbers"><code class="language-cpp">__syncwarp();
 unsigned ballot_result = __ballot(result);
 </code></pre>
 
 <p>The correct fix is to use __ballot_sync() as in Listing 12.</p>
 
-<pre><code class="language-cpp">unsigned ballot_result = __ballot_sync(FULL_MASK, result);
+<pre class="line-numbers"><code class="language-cpp">unsigned ballot_result = __ballot_sync(FULL_MASK, result);
 </code></pre>
 
 <p>A common mistake is to assume that calling __syncwarp() before and/or after a legacy warp-level primitive is functionally equivalent to calling the sync version of the primitive. For example, is __syncwarp(); v = __shfl(0); __syncwarp(); the same as __shfl_sync(FULL_MASK, 0)? The answer is no, for two reasons. First, if the sequence is used in a thread-divergent branch, then __shfl(0) won’t be executed by all threads together. Listing 13 shows an example. The __syncwarp() at line 3 and line 7 would ensure foo() is called by all threads in the warp before line 4 or line 8 is executed. Once threads leave the __syncwarp(), the odd threads and the even threads become divergent again. Therefore, the __shfl(0) at line 4 will get an undefined value because lane 0 is inactive when line 4 is executed. __shfl_sync(FULL_MASK, 0) can be used in thread-divergent branches without this problem.</p>
 
-<pre><code class="language-cpp">v = foo();
+<pre class="line-numbers"><code class="language-cpp">v = foo();
 if (threadIdx.x % 2) {
     __syncwarp();
     v = __shfl(0);       // L3 will get undefined result because lane 0 
@@ -378,7 +379,7 @@ if (threadIdx.x % 2) {
 
 <p>Second, even when the sequence is called by all the threads together, the CUDA execution model does not guarantee threads will stay convergent after leaving __syncwarp(), as Listing 14 shows. Implicit lock-step execution is not guaranteed. Remember, thread convergence is guaranteed only within explicitly synchronous warp-level primitives.</p>
 
-<pre><code class="language-cpp">assert(__activemask() == FULL_MASK); // assume this is true
+<pre class="line-numbers"><code class="language-cpp">assert(__activemask() == FULL_MASK); // assume this is true
 __syncwarp();
 assert(__activemask() == FULL_MASK); // this may fail
 </code></pre>
@@ -452,7 +453,7 @@ assert(__activemask() == FULL_MASK); // this may fail
 <p>用一个实际例子来说明：<br/>
 假设下面的代码中，thread 1 执行writeXY()，而thread 2 执行readXY()，thread 2读取到的值是多少呢？</p>
 
-<pre><code class="language-cpp">__device__ volatile int X = 1, Y = 2; 
+<pre class="line-numbers"><code class="language-cpp">__device__ volatile int X = 1, Y = 2; 
 
 __device__ void writeXY() { 
     X = 10; Y = 20; 
@@ -490,7 +491,7 @@ __device__ void readXY() {
 <p><strong>内存围栏函数可以被用来保证实际内存读取顺序和语义学顺序相同。</strong><br/>
 在CUDA中提供了三个内存围栏函数：</p>
 
-<pre><code class="language-cpp">void __threadfence_block();
+<pre class="line-numbers"><code class="language-cpp">void __threadfence_block();
 void __threadfence();
 void __threadfence_system();
 </code></pre>
@@ -508,7 +509,7 @@ void __threadfence_system();
 
 <p>如果没有在存储部分和与计数器加一之间插入内存未来，计数器可能会在部分和存储完成之前加一，这样最终计算的结果可能会缺失一部分。</p>
 
-<pre><code class="language-cpp">__device__ unsigned int count = 0; 
+<pre class="line-numbers"><code class="language-cpp">__device__ unsigned int count = 0; 
 __shared__ bool isLastBlockDone; 
 
 __global__ void sum(const float* array, unsigned int N, volatile float* result) 
@@ -841,7 +842,7 @@ __global__ void sum(const float* array, unsigned int N, volatile float* result)
 	      
 		      
 			      <li class="post">
-			        <a href="15262740803283.html">关于TRT里面双向RNN参数的设置</a>
+			        <a href="15262740803283.html">关于TRT里面双向RNN参数的设置 [待更新]</a>
 			      </li>
 		     
 		  
@@ -922,7 +923,7 @@ Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
      
     </script>
 
-    <script src="asset/chart/all-min.js"></script><script type="text/javascript">$(function(){    var mwebii=0;    var mwebChartEleId = 'mweb-chart-ele-';    $('pre>code').each(function(){        mwebii++;        var eleiid = mwebChartEleId+mwebii;        if($(this).hasClass('language-sequence')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = Diagram.parse($(this).text());            diagram.drawSVG(eleiid,{theme: 'simple'});        }else if($(this).hasClass('language-flow')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = flowchart.parse($(this).text());            diagram.drawSVG(eleiid);        }    });});</script>
+    
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: { equationNumbers: { autoNumber: "AMS" } }});</script>
 
 

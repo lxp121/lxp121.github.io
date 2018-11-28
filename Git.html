@@ -70,10 +70,13 @@
 
 <aside class="left-off-canvas-menu">
       <ul class="off-canvas-list">
-       
-       <li><a href="index.html">HOME</a></li>
-    <li><a href="archives.html">Archives</a></li>
-    <li><a href="about.html">ABOUT</a></li>
+        
+        <li><a target="_self" href="index.html">Home</a></li>
+        
+        <li><a target="_self" href="archives.html">Archives</a></li>
+        
+        <li><a target="_self" href="about.html">About</a></li>
+        
 
     <li><label>Categories</label></li>
 
@@ -116,7 +119,7 @@
                         
                         	<p>.gitignore 只能忽略那些没有被track的文件，如果这些文件以及在版本管理里面了（通过git add)，则.gitignore是无效的。办法是删除现在的track状态（改变为未track），从新提交：</p>
 
-<pre><code class="language-bash">git rm -r --cached .
+<pre class="line-numbers"><code class="language-bash">git rm -r --cached .
 git add .
 </code></pre>
 
@@ -155,7 +158,7 @@ git add .
 
 <p>我们有时候会发现针对某个项目做了大量改动，在push的时候发现自己并没有push权限。当然，这也不是正常的操作流程，正常的流程应该是：</p>
 
-<pre><code class="language-flow">st=&gt;start: fork 一个新的分支
+<pre class="line-numbers"><code class="language-flow">st=&gt;start: fork 一个新的分支
 e=&gt;end: 推到服务器端
 op=&gt;operation: 在新分支上做相应修改
 op2=&gt;operation: 提交到新的服务器
@@ -168,7 +171,7 @@ st-&gt;op-&gt;op2-&gt;op3-&gt;op4-&gt;e
 <p>但是这样的操作有时候会被忘记，在已经提交了多个request之后，如何修改呢？<br/>
 网上错误的教程是这样的：</p>
 
-<pre><code class="language-bash"># WRONG workflow, not test!!
+<pre class="line-numbers"><code class="language-bash"># WRONG workflow, not test!!
 git branch -t newbranch
 git reset --hard HEAD~3
 git checkout newbranch
@@ -178,7 +181,7 @@ git checkout newbranch
 
 <h2 id="toc_1">正确的workflow</h2>
 
-<pre><code class="language-bash">git reset --keep HEAD~3
+<pre class="line-numbers"><code class="language-bash">git reset --keep HEAD~3
 git checkout -t -b newbranch
 git cherry-pick ..HEAD@{2}
 </code></pre>
@@ -195,7 +198,7 @@ git cherry-pick ..HEAD@{2}
 
 <p>一个替代的方法是:</p>
 
-<pre><code class="language-bash"># newbranch will omit the 3 most recent commits.
+<pre class="line-numbers"><code class="language-bash"># newbranch will omit the 3 most recent commits.
 git checkout -b newbranch HEAD~3
 git branch --set-upstream-to=oldbranch
 # Cherry-picks the extra commits from oldbranch.
@@ -210,21 +213,21 @@ git branch --force oldbranch oldbranch~3
 
 <p>假设你有master分支包含M1，M2和M3三个提交。</p>
 
-<pre><code>M1--M2--M3  &lt;-- origin/master
+<pre class="line-numbers"><code class="language-text">M1--M2--M3  &lt;-- origin/master
          \
           T1--T2--T3  &lt;-- topic
 </code></pre>
 
 <p>现在，如果有人修改了history，并且使用force-pushing 删除了M2</p>
 
-<pre><code>M1--M3&#39;  &lt;-- origin/master
+<pre class="line-numbers"><code class="language-text">M1--M3&#39;  &lt;-- origin/master
  \
   M2--M3--T1--T2--T3  &lt;-- topic
 </code></pre>
 
 <p>此时因为M3&#39;并不是分支topic里面的元素，因此git rebase 会认为T1-&gt;T3 已经不再需要（上游提交已经被删除）。</p>
 
-<pre><code>M1--M3&#39;  &lt;-- origin/master
+<pre class="line-numbers"><code class="language-text">M1--M3&#39;  &lt;-- origin/master
      \
       T1&#39;--T2&#39;--T3&#39;  &lt;-- topic (rebased)
 </code></pre>
@@ -233,7 +236,7 @@ git branch --force oldbranch oldbranch~3
 
 <p>因此在之前的例子中，</p>
 
-<pre><code class="language-bash">git branch -t newbranch
+<pre class="line-numbers"><code class="language-bash">git branch -t newbranch
 git reset --hard HEAD~3
 git checkout newbranch
 </code></pre>
@@ -250,7 +253,7 @@ git checkout newbranch
 
 <p>使用:</p>
 
-<pre><code>touch M1 &amp;&amp; git add * &amp;&amp; git commit -m &quot;M1&quot;
+<pre class="line-numbers"><code class="language-text">touch M1 &amp;&amp; git add * &amp;&amp; git commit -m &quot;M1&quot;
 touch M2 &amp;&amp; git add * &amp;&amp; git commit -m &quot;M2&quot;
 touch M3 &amp;&amp; git add * &amp;&amp; git commit -m &quot;M3&quot;
 
@@ -376,7 +379,7 @@ git rebase master
 	      
 		      
 			      <li class="post">
-			        <a href="15262740803283.html">关于TRT里面双向RNN参数的设置</a>
+			        <a href="15262740803283.html">关于TRT里面双向RNN参数的设置 [待更新]</a>
 			      </li>
 		     
 		  
@@ -457,7 +460,7 @@ Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
      
     </script>
 
-    <script src="asset/chart/all-min.js"></script><script type="text/javascript">$(function(){    var mwebii=0;    var mwebChartEleId = 'mweb-chart-ele-';    $('pre>code').each(function(){        mwebii++;        var eleiid = mwebChartEleId+mwebii;        if($(this).hasClass('language-sequence')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = Diagram.parse($(this).text());            diagram.drawSVG(eleiid,{theme: 'simple'});        }else if($(this).hasClass('language-flow')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = flowchart.parse($(this).text());            diagram.drawSVG(eleiid);        }    });});</script>
+    
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: { equationNumbers: { autoNumber: "AMS" } }});</script>
 
 
